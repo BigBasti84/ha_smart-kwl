@@ -4,68 +4,107 @@ icon: mdi:fan-auto
 cards:
   - type: custom:mushroom-title-card
     title: Smart KWL
-    subtitle: Ventilation overview and diagnostics
+    subtitle: Auto-adaptive dashboard (entity IDs discovered automatically)
 
   - type: custom:mushroom-chips-card
     chips:
-      - type: entity
-        entity: binary_sensor.smart_kwl_ventilation_on
+      - type: template
         icon: mdi:fan
-        content_info: state
-      - type: entity
-        entity: binary_sensor.smart_kwl_summer_mode_active
+        content: >-
+          {% set e = states.binary_sensor | map(attribute='entity_id') | select('search', '_ventilation_on$') | list | first %}
+          Ventilation: {{ 'On' if e and is_state(e, 'on') else 'Off' }}
+        icon_color: >-
+          {% set e = states.binary_sensor | map(attribute='entity_id') | select('search', '_ventilation_on$') | list | first %}
+          {{ 'green' if e and is_state(e, 'on') else 'grey' }}
+      - type: template
         icon: mdi:white-balance-sunny
-        content_info: state
-      - type: entity
-        entity: binary_sensor.smart_kwl_night_mode_active
+        content: >-
+          {% set e = states.binary_sensor | map(attribute='entity_id') | select('search', '_summer_mode_active$') | list | first %}
+          Summer: {{ 'On' if e and is_state(e, 'on') else 'Off' }}
+        icon_color: >-
+          {% set e = states.binary_sensor | map(attribute='entity_id') | select('search', '_summer_mode_active$') | list | first %}
+          {{ 'amber' if e and is_state(e, 'on') else 'grey' }}
+      - type: template
         icon: mdi:weather-night
-        content_info: state
-
-  - type: horizontal-stack
-    cards:
-      - type: custom:mushroom-entity-card
-        entity: sensor.smart_kwl_target_fan_level
-        name: Current Fan Speed
-        icon: mdi:fan-chevron-up
-        primary_info: state
-        secondary_info: name
-      - type: custom:mushroom-entity-card
-        entity: sensor.smart_kwl_target_fan_percentage
-        name: Fan Percentage
-        icon: mdi:percent
-        primary_info: state
-        secondary_info: name
-
-  - type: history-graph
-    title: Fan Speed History (24h)
-    hours_to_show: 24
-    refresh_interval: 60
-    entities:
-      - entity: sensor.smart_kwl_target_fan_level
-        name: Fan Level (1-8)
+        content: >-
+          {% set e = states.binary_sensor | map(attribute='entity_id') | select('search', '_night_mode_active$') | list | first %}
+          Night: {{ 'On' if e and is_state(e, 'on') else 'Off' }}
+        icon_color: >-
+          {% set e = states.binary_sensor | map(attribute='entity_id') | select('search', '_night_mode_active$') | list | first %}
+          {{ 'deep-purple' if e and is_state(e, 'on') else 'grey' }}
 
   - type: horizontal-stack
     cards:
       - type: custom:mushroom-template-card
-        entity: sensor.smart_kwl_co2_combined
+        icon: mdi:fan-chevron-up
+        primary: Current Fan Speed
+        secondary: >-
+          {% set level = states.sensor | map(attribute='entity_id') | select('search', '_target_fan_level$') | list | first %}
+          {% set pct = states.sensor | map(attribute='entity_id') | select('search', '_target_fan_percentage$') | list | first %}
+          {% if level %}
+          {{ states(level) }} / 8
+          {% if pct %}
+          ({{ states(pct) }}%)
+          {% endif %}
+          {% else %}
+          No fan level sensor found
+          {% endif %}
+      - type: custom:mushroom-template-card
         icon: mdi:molecule-co2
         primary: >-
-          CO2: {{ states('sensor.smart_kwl_co2_combined') }} ppm
+          {% set c = states.sensor | map(attribute='entity_id') | select('search', '_co2_combined$') | list | first %}
+          CO2: {{ states(c) if c else 'n/a' }} ppm
         secondary: >-
-          Low {{ states('sensor.smart_kwl_co2_low') }} / High {{ states('sensor.smart_kwl_co2_high') }} ppm
-      - type: custom:mushroom-template-card
-        entity: sensor.smart_kwl_humidity_combined
-        icon: mdi:water-percent
-        primary: >-
-          Humidity: {{ states('sensor.smart_kwl_humidity_combined') }} %
-        secondary: >-
-          Low {{ states('sensor.smart_kwl_humidity_low') }} / High {{ states('sensor.smart_kwl_humidity_high') }} %
+          {% set lo = states.sensor | map(attribute='entity_id') | select('search', '_co2_low$') | list | first %}
+          {% set hi = states.sensor | map(attribute='entity_id') | select('search', '_co2_high$') | list | first %}
+          Low {{ states(lo) if lo else 'n/a' }} / High {{ states(hi) if hi else 'n/a' }} ppm
+
+  - type: custom:mushroom-template-card
+    icon: mdi:water-percent
+    primary: >-
+      {% set h = states.sensor | map(attribute='entity_id') | select('search', '_humidity_combined$') | list | first %}
+      Humidity: {{ states(h) if h else 'n/a' }} %
+    secondary: >-
+      {% set lo = states.sensor | map(attribute='entity_id') | select('search', '_humidity_low$') | list | first %}
+      {% set hi = states.sensor | map(attribute='entity_id') | select('search', '_humidity_high$') | list | first %}
+      Low {{ states(lo) if lo else 'n/a' }} / High {{ states(hi) if hi else 'n/a' }} %
+
+  - type: custom:auto-entities
+    card:
+      type: history-graph
+      title: Current Fan Speed (24h)
+      hours_to_show: 24
+      refresh_interval: 60
+    filter:
+      include:
+        - domain: sensor
+          entity_id: '*_target_fan_level'
+      exclude: []
+    show_empty: true
 
   - type: markdown
-    title: Last 5 Changes
+    title: Compact Log (Last 5 Changes)
     content: |
-      {% set entity = 'sensor.smart_kwl_check_log' %}
-      {% set history = state_attr(entity, 'check_history') or [] %}
+      {% set preferred = 'sensor.smart_kwl_check_log' %}
+      {% set ns = namespace(entity=None, candidates=[]) %}
+
+      {% if state_attr(preferred, 'check_history') is not none %}
+        {% set ns.entity = preferred %}
+      {% else %}
+        {% for s in states.sensor %}
+          {% if state_attr(s.entity_id, 'check_history') is not none %}
+            {% set ns.candidates = ns.candidates + [s.entity_id] %}
+          {% endif %}
+        {% endfor %}
+        {% if ns.candidates | count > 0 %}
+          {% set ns.entity = ns.candidates[0] %}
+        {% endif %}
+      {% endif %}
+
+      {% if not ns.entity %}
+      No check log sensor found (attribute `check_history`).
+      {% else %}
+      {% set history = state_attr(ns.entity, 'check_history') or [] %}
       {% if history | count == 0 %}
       No changes available yet.
       {% else %}
@@ -79,13 +118,28 @@ cards:
       {% endif %}
       {% endfor %}
       {% endif %}
+      {% endif %}
 
-  - type: history-graph
-    title: Incoming / Outgoing Temperatures
-    hours_to_show: 24
-    refresh_interval: 60
-    entities:
-      - entity: sensor.smart_kwl_incoming_temperature
-        name: Incoming
-      - entity: sensor.smart_kwl_outgoing_temperature
-        name: Outgoing
+  - type: custom:auto-entities
+    card:
+      type: history-graph
+      title: Incoming / Outgoing Temperatures (24h)
+      hours_to_show: 24
+      refresh_interval: 60
+    filter:
+      include:
+        - domain: sensor
+          entity_id: '*_incoming_temperature'
+        - domain: sensor
+          entity_id: '*_outgoing_temperature'
+      exclude: []
+    show_empty: true
+
+  - type: markdown
+    title: Notes
+    content: |
+      This dashboard uses:
+      - `Mushroom` cards
+      - `auto-entities` for dynamic graph entity discovery
+
+      If graphs are empty, install the `auto-entities` Lovelace card from HACS (Frontend).
