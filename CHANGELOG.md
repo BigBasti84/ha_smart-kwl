@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.11] - 2026-05-13
+### Fixed
+- Ventilation On binary sensor now correctly shows On for climate entities (state is `heat`/`auto`, not `on`)
+- Dashboard rewritten with direct entity IDs — no more loop-based discovery that silently failed
+- Dashboard simplified: fewer template loops, cleaner cards
+
 ## [0.1.10] - 2026-05-13
 ### Fixed
 - Added `device_info` to all entity classes (sensor, binary_sensor, fan) — required for `_attr_has_entity_name = True` in HA 2024.x+; without this, no entities were registered

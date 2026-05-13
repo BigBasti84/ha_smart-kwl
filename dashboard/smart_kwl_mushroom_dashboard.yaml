@@ -6,134 +6,52 @@ views:
     cards:
       - type: custom:mushroom-title-card
         title: Smart KWL
-        subtitle: Stable dashboard with runtime diagnostics
+        subtitle: Ventilation control
 
       - type: custom:mushroom-chips-card
         chips:
           - type: template
             icon: mdi:fan
-            content: >-
-              {% set ns = namespace(e='') %}
-              {% for b in states.binary_sensor %}
-                {% if b.entity_id.endswith('_ventilation_on') %}
-                  {% set ns.e = b.entity_id %}
-                {% endif %}
-              {% endfor %}
-              Ventilation: {{ 'On' if ns.e and is_state(ns.e, 'on') else 'Off' }}
-            icon_color: >-
-              {% set ns = namespace(e='') %}
-              {% for b in states.binary_sensor %}
-                {% if b.entity_id.endswith('_ventilation_on') %}
-                  {% set ns.e = b.entity_id %}
-                {% endif %}
-              {% endfor %}
-              {{ 'green' if ns.e and is_state(ns.e, 'on') else 'grey' }}
+            content: "Ventilation: {{ 'On' if is_state('binary_sensor.smart_kwl_ventilation_on', 'on') else 'Off' }}"
+            icon_color: "{{ 'green' if is_state('binary_sensor.smart_kwl_ventilation_on', 'on') else 'grey' }}"
 
           - type: template
             icon: mdi:white-balance-sunny
-            content: >-
-              {% set ns = namespace(e='') %}
-              {% for b in states.binary_sensor %}
-                {% if b.entity_id.endswith('_summer_mode_active') %}
-                  {% set ns.e = b.entity_id %}
-                {% endif %}
-              {% endfor %}
-              Summer: {{ 'On' if ns.e and is_state(ns.e, 'on') else 'Off' }}
-            icon_color: >-
-              {% set ns = namespace(e='') %}
-              {% for b in states.binary_sensor %}
-                {% if b.entity_id.endswith('_summer_mode_active') %}
-                  {% set ns.e = b.entity_id %}
-                {% endif %}
-              {% endfor %}
-              {{ 'amber' if ns.e and is_state(ns.e, 'on') else 'grey' }}
+            content: "Summer: {{ 'On' if is_state('binary_sensor.smart_kwl_summer_mode_active', 'on') else 'Off' }}"
+            icon_color: "{{ 'amber' if is_state('binary_sensor.smart_kwl_summer_mode_active', 'on') else 'grey' }}"
 
           - type: template
             icon: mdi:weather-night
-            content: >-
-              {% set ns = namespace(e='') %}
-              {% for b in states.binary_sensor %}
-                {% if b.entity_id.endswith('_night_mode_active') %}
-                  {% set ns.e = b.entity_id %}
-                {% endif %}
-              {% endfor %}
-              Night: {{ 'On' if ns.e and is_state(ns.e, 'on') else 'Off' }}
-            icon_color: >-
-              {% set ns = namespace(e='') %}
-              {% for b in states.binary_sensor %}
-                {% if b.entity_id.endswith('_night_mode_active') %}
-                  {% set ns.e = b.entity_id %}
-                {% endif %}
-              {% endfor %}
-              {{ 'deep-purple' if ns.e and is_state(ns.e, 'on') else 'grey' }}
+            content: "Night: {{ 'On' if is_state('binary_sensor.smart_kwl_night_mode_active', 'on') else 'Off' }}"
+            icon_color: "{{ 'deep-purple' if is_state('binary_sensor.smart_kwl_night_mode_active', 'on') else 'grey' }}"
 
       - type: horizontal-stack
         cards:
           - type: custom:mushroom-template-card
             icon: mdi:fan-chevron-up
-            primary: Current Fan Speed
+            primary: Fan Speed
             secondary: >-
-              {% set ns = namespace(level='', pct='') %}
-              {% for s in states.sensor %}
-                {% if s.entity_id.endswith('_target_fan_level') %}
-                  {% set ns.level = s.entity_id %}
-                {% endif %}
-                {% if s.entity_id.endswith('_target_fan_percentage') %}
-                  {% set ns.pct = s.entity_id %}
-                {% endif %}
-              {% endfor %}
-              {% if ns.level %}
-              {{ states(ns.level) }} / 8{% if ns.pct %} ({{ states(ns.pct) }}%){% endif %}
-              {% else %}
-              No fan level sensor found
-              {% endif %}
+              {{ states('sensor.smart_kwl_target_fan_level') }} / 8
+              ({{ states('sensor.smart_kwl_target_fan_percentage') }}%)
 
           - type: custom:mushroom-template-card
             icon: mdi:molecule-co2
-            primary: >-
-              {% set ns = namespace(c='') %}
-              {% for s in states.sensor %}
-                {% if s.entity_id.endswith('_co2_combined') %}
-                  {% set ns.c = s.entity_id %}
-                {% endif %}
-              {% endfor %}
-              CO2: {{ states(ns.c) if ns.c else 'n/a' }} ppm
+            primary: CO2
             secondary: >-
-              {% set ns = namespace(lo='', hi='') %}
-              {% for s in states.sensor %}
-                {% if s.entity_id.endswith('_co2_low') %}
-                  {% set ns.lo = s.entity_id %}
-                {% endif %}
-                {% if s.entity_id.endswith('_co2_high') %}
-                  {% set ns.hi = s.entity_id %}
-                {% endif %}
-              {% endfor %}
-              Low {{ states(ns.lo) if ns.lo else 'n/a' }} / High {{ states(ns.hi) if ns.hi else 'n/a' }} ppm
+              {{ states('sensor.smart_kwl_co2_combined') }} ppm
+              (low {{ states('sensor.smart_kwl_co2_low') }} /
+              high {{ states('sensor.smart_kwl_co2_high') }})
 
-      - type: custom:mushroom-template-card
-        icon: mdi:water-percent
-        primary: >-
-          {% set ns = namespace(h='') %}
-          {% for s in states.sensor %}
-            {% if s.entity_id.endswith('_humidity_combined') %}
-              {% set ns.h = s.entity_id %}
-            {% endif %}
-          {% endfor %}
-          Humidity: {{ states(ns.h) if ns.h else 'n/a' }} %
-        secondary: >-
-          {% set ns = namespace(lo='', hi='') %}
-          {% for s in states.sensor %}
-            {% if s.entity_id.endswith('_humidity_low') %}
-              {% set ns.lo = s.entity_id %}
-            {% endif %}
-            {% if s.entity_id.endswith('_humidity_high') %}
-              {% set ns.hi = s.entity_id %}
-            {% endif %}
-          {% endfor %}
-          Low {{ states(ns.lo) if ns.lo else 'n/a' }} / High {{ states(ns.hi) if ns.hi else 'n/a' }} %
+          - type: custom:mushroom-template-card
+            icon: mdi:water-percent
+            primary: Humidity
+            secondary: >-
+              {{ states('sensor.smart_kwl_humidity_combined') }} %
+              (low {{ states('sensor.smart_kwl_humidity_low') }} /
+              high {{ states('sensor.smart_kwl_humidity_high') }})
 
       - type: history-graph
-        title: Current Fan Speed (24h)
+        title: Fan Speed (24h)
         hours_to_show: 24
         refresh_interval: 60
         entities:
@@ -143,23 +61,7 @@ views:
       - type: markdown
         title: Compact Log (Last 5 Changes)
         content: |
-          {% set preferred = 'sensor.smart_kwl_check_log' %}
-          {% set ns = namespace(entity='', candidates='') %}
-
-          {% if state_attr(preferred, 'check_history') is not none %}
-            {% set ns.entity = preferred %}
-          {% else %}
-            {% for s in states.sensor %}
-              {% if state_attr(s.entity_id, 'check_history') is not none %}
-                {% set ns.entity = s.entity_id %}
-              {% endif %}
-            {% endfor %}
-          {% endif %}
-
-          {% if not ns.entity %}
-          No check log sensor found.
-          {% else %}
-          {% set history = state_attr(ns.entity, 'check_history') or [] %}
+          {% set history = state_attr('sensor.smart_kwl_check_log', 'check_history') or [] %}
           {% set counts = namespace(shown=0) %}
           {% if history | count == 0 %}
           No changes available yet.
@@ -189,7 +91,6 @@ views:
           {% endfor %}
           {% if counts.shown == 0 %}
           No fan speed changes recorded yet.
-          {% endif %}
           {% endif %}
           {% endif %}
 

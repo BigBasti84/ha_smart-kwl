@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import STATE_ON
+from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -60,7 +60,7 @@ class SmartKwlVentilationState(BinarySensorEntity):
         state = self._controller.fan_state()
         if state is None:
             return None
-        return state.state == STATE_ON
+        return state.state not in (STATE_OFF, "unavailable", "unknown")
 
     @callback
     def _handle_controller_update(self) -> None:
