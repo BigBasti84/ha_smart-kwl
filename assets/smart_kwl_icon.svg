@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Smart KWL integration icon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0B3C5D"/>
+      <stop offset="100%" stop-color="#1D6F8A"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4FC3F7"/>
+      <stop offset="100%" stop-color="#A7FFEB"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="#062638" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="url(#bg)"/>
+
+  <circle cx="256" cy="256" r="150" fill="none" stroke="url(#ring)" stroke-width="20" opacity="0.95"/>
+
+  <g transform="translate(256 256)" filter="url(#softShadow)">
+    <circle r="22" fill="#E8F6FB"/>
+
+    <path d="M0,-20 C52,-28 92,-72 94,-122 C48,-126 10,-104 -8,-66 C-16,-48 -14,-34 0,-20Z" fill="#D0F0FF"/>
+    <path d="M17,10 C54,44 64,98 35,144 C-6,122 -30,90 -31,53 C-31,34 -22,18 -4,10Z" fill="#C0E9FA"/>
+    <path d="M-18,9 C-67,18 -106,-10 -130,-55 C-93,-84 -51,-95 -19,-77 C-2,-67 6,-51 2,-31Z" fill="#B0E0F2"/>
+  </g>
+
+  <g fill="none" stroke="#B9F3FF" stroke-linecap="round" stroke-width="12" opacity="0.9">
+    <path d="M124 170 C160 144, 198 146, 226 172"/>
+    <path d="M124 342 C160 368, 198 366, 226 340"/>
+    <path d="M286 170 C314 146, 352 144, 388 170"/>
+    <path d="M286 340 C314 366, 352 368, 388 342"/>
+  </g>
+
+  <g fill="#B9F3FF" opacity="0.95">
+    <path d="M228 167 l-10 16 18-2z"/>
+    <path d="M228 345 l-10-16 18 2z"/>
+    <path d="M284 167 l10 16 -18-2z"/>
+    <path d="M284 345 l10-16 -18 2z"/>
+  </g>
+</svg>

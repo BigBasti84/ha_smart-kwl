@@ -1,5 +1,7 @@
 # Smart KWL - Home Assistant Integration
 
+![Smart KWL Icon](assets/smart_kwl_icon.svg)
+
 Smart KWL is a highly configurable Home Assistant custom integration that manages ventilation fan speed based on humidity and CO2 demand, with support for away/night/summer behavior and full diagnostics.
 
 ## Highlights
