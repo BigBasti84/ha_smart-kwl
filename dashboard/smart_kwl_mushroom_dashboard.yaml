@@ -144,37 +144,40 @@ views:
         title: Compact Log (Last 5 Changes)
         content: |
           {% set preferred = 'sensor.smart_kwl_check_log' %}
-          {% set ns = namespace(entity='', candidates=[]) %}
+          {% set ns = namespace(entity='', candidates='') %}
 
           {% if state_attr(preferred, 'check_history') is not none %}
             {% set ns.entity = preferred %}
           {% else %}
             {% for s in states.sensor %}
               {% if state_attr(s.entity_id, 'check_history') is not none %}
-                {% set ns.candidates = ns.candidates + [s.entity_id] %}
+                {% set ns.entity = s.entity_id %}
               {% endif %}
             {% endfor %}
-            {% if ns.candidates | count > 0 %}
-              {% set ns.entity = ns.candidates[0] %}
-            {% endif %}
           {% endif %}
 
           {% if not ns.entity %}
           No check log sensor found.
           {% else %}
           {% set history = state_attr(ns.entity, 'check_history') or [] %}
+          {% set counts = namespace(shown=0) %}
           {% if history | count == 0 %}
           No changes available yet.
           {% else %}
-          {% for run in history[:5] %}
-          {% set ts = run[0].split('at=')[-1] if run | count > 0 else 'n/a' %}
+          {% for run in history %}
           {% set action = (run | select('search', '^action \|') | list | first) %}
-          {% if action %}
+          {% if action and 'status=applied' in action and counts.shown < 5 %}
+          {% set counts.shown = counts.shown + 1 %}
+          {% set ts = run[0].split('at=')[-1] if run | count > 0 else '' %}
+          {% set ts_fmt = ts[:10].split('-') | reverse | join('-') ~ ' -' ~ ts[11:16] if ts | length >= 16 else ts %}
           {% set reason = action.split('reason=')[-1].split(' |')[0] if 'reason=' in action else 'unknown' %}
           {% set level = action.split('after_level=')[-1].split(' ')[0] if 'after_level=' in action else 'n/a' %}
-          - {{ ts }}: Set Fan Speed to {{ level }} because of {{ reason }}
+          - {{ ts_fmt }}: Fan → {{ level }} ({{ reason }})
           {% endif %}
           {% endfor %}
+          {% if counts.shown == 0 %}
+          No fan speed changes recorded yet.
+          {% endif %}
           {% endif %}
           {% endif %}
 
