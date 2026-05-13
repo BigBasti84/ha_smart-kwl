@@ -3,9 +3,10 @@
   "config": {
     "step": {
       "user": {
+        "description": "Fan levels use discrete steps {level_min}..{level_max}. Optional fields: Away sensor/fan level, Summer mode sensor, and all temperature sensors. Temperature mapping: {incoming_expl} {outgoing_expl} {outside_expl} {exhaust_expl}",
         "data": {
           "name": "Name",
-          "fan_entity": "Fan entity",
+          "fan_entity": "Target entity (fan or climate)",
           "humidity_sensors": "Humidity sensors",
           "co2_sensors": "CO2 sensors",
           "min_fan_level": "Minimum fan level",
@@ -20,16 +21,17 @@
           "night_summer_fan_level": "Night summer fan level",
           "summer_mode_sensor": "Summer mode binary sensor",
           "check_interval": "Control check interval (seconds)",
-          "incoming_temperature_entity": "Incoming temperature sensor",
-          "outgoing_temperature_entity": "Outgoing temperature sensor",
-          "outside_temperature_entity": "Outside temperature sensor",
-          "exhaust_temperature_entity": "Exhaust temperature sensor"
+          "incoming_temperature_entity": "Incoming air temperature (outside -> unit)",
+          "outgoing_temperature_entity": "Outgoing supply temperature (unit -> rooms)",
+          "outside_temperature_entity": "Outside ambient temperature (optional)",
+          "exhaust_temperature_entity": "Exhaust extract temperature (rooms -> unit)"
         }
       },
       "init": {
+        "description": "Fan levels use discrete steps {level_min}..{level_max}. Optional fields: Away sensor/fan level, Summer mode sensor, and all temperature sensors. Temperature mapping: {incoming_expl} {outgoing_expl} {outside_expl} {exhaust_expl}",
         "data": {
           "name": "Name",
-          "fan_entity": "Fan entity",
+          "fan_entity": "Target entity (fan or climate)",
           "humidity_sensors": "Humidity sensors",
           "co2_sensors": "CO2 sensors",
           "min_fan_level": "Minimum fan level",
@@ -44,26 +46,24 @@
           "night_summer_fan_level": "Night summer fan level",
           "summer_mode_sensor": "Summer mode binary sensor",
           "check_interval": "Control check interval (seconds)",
-          "incoming_temperature_entity": "Incoming temperature sensor",
-          "outgoing_temperature_entity": "Outgoing temperature sensor",
-          "outside_temperature_entity": "Outside temperature sensor",
-          "exhaust_temperature_entity": "Exhaust temperature sensor"
+          "incoming_temperature_entity": "Incoming air temperature (outside -> unit)",
+          "outgoing_temperature_entity": "Outgoing supply temperature (unit -> rooms)",
+          "outside_temperature_entity": "Outside ambient temperature (optional)",
+          "exhaust_temperature_entity": "Exhaust extract temperature (rooms -> unit)"
         }
       },
       "humidity_threshold": {
         "title": "Humidity Threshold",
-        "description": "Set min and max values for humidity sensor: {entity_id}",
+        "description": "Set min and max values for humidity sensor {entity_id}. Suggested defaults: min {default_min}, max {default_max}.",
         "data": {
-          "entity_id": "Sensor entity",
           "min": "Minimum value",
           "max": "Maximum value"
         }
       },
       "co2_threshold": {
         "title": "CO2 Threshold",
-        "description": "Set min and max values for CO2 sensor: {entity_id}",
+        "description": "Set min and max values for CO2 sensor {entity_id}. Suggested defaults: min {default_min}, max {default_max}.",
         "data": {
-          "entity_id": "Sensor entity",
           "min": "Minimum value",
           "max": "Maximum value"
         }
@@ -82,9 +82,10 @@
   "options": {
     "step": {
       "init": {
+        "description": "Fan levels use discrete steps {level_min}..{level_max}. Optional fields: Away sensor/fan level, Summer mode sensor, and all temperature sensors. Temperature mapping: {incoming_expl} {outgoing_expl} {outside_expl} {exhaust_expl}",
         "data": {
           "name": "Name",
-          "fan_entity": "Fan entity",
+          "fan_entity": "Target entity (fan or climate)",
           "humidity_sensors": "Humidity sensors",
           "co2_sensors": "CO2 sensors",
           "min_fan_level": "Minimum fan level",
@@ -99,26 +100,24 @@
           "night_summer_fan_level": "Night summer fan level",
           "summer_mode_sensor": "Summer mode binary sensor",
           "check_interval": "Control check interval (seconds)",
-          "incoming_temperature_entity": "Incoming temperature sensor",
-          "outgoing_temperature_entity": "Outgoing temperature sensor",
-          "outside_temperature_entity": "Outside temperature sensor",
-          "exhaust_temperature_entity": "Exhaust temperature sensor"
+          "incoming_temperature_entity": "Incoming air temperature (outside -> unit)",
+          "outgoing_temperature_entity": "Outgoing supply temperature (unit -> rooms)",
+          "outside_temperature_entity": "Outside ambient temperature (optional)",
+          "exhaust_temperature_entity": "Exhaust extract temperature (rooms -> unit)"
         }
       },
       "humidity_threshold": {
         "title": "Humidity Threshold",
-        "description": "Set min and max values for humidity sensor: {entity_id}",
+        "description": "Set min and max values for humidity sensor {entity_id}. Suggested defaults: min {default_min}, max {default_max}.",
         "data": {
-          "entity_id": "Sensor entity",
           "min": "Minimum value",
           "max": "Maximum value"
         }
       },
       "co2_threshold": {
         "title": "CO2 Threshold",
-        "description": "Set min and max values for CO2 sensor: {entity_id}",
+        "description": "Set min and max values for CO2 sensor {entity_id}. Suggested defaults: min {default_min}, max {default_max}.",
         "data": {
-          "entity_id": "Sensor entity",
           "min": "Minimum value",
           "max": "Maximum value"
         }

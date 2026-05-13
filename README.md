@@ -1,192 +1,127 @@
-# Smart KWL – Home Assistant Integration
+# Smart KWL - Home Assistant Integration
 
-Smart KWL is a generic, highly-configurable Home Assistant custom integration for managing the fan speed of a central ventilation system. It supports multi-sensor humidity and CO2 control, day/night/away/summer modes, and provides detailed diagnostics for every control action.
+Smart KWL is a highly configurable Home Assistant custom integration that manages ventilation fan speed based on humidity and CO2 demand, with support for away/night/summer behavior and full diagnostics.
 
-## Features
+## Highlights
 
-- **Multi-sensor support:** Use any number of humidity and CO2 sensors, each with individual min/max thresholds.
-- **Gradual fan speed control:** Fan speed ramps up or down based on the worst-case demand from all sensors.
-- **Modes:** Supports away, night, and summer modes with dedicated fan levels and time windows.
-- **Periodic checks:** Control logic runs at a configurable interval (default 60s) to avoid excessive fan changes.
-- **Verification:** After each fan speed change, the integration checks if the fan actually updated and retries if needed.
-- **Information entities:** Exposes ON/OFF state, incoming/outgoing/outside/exhaust temperatures, and a detailed check log.
-- **Dashboard card:** Ready-to-use Lovelace Markdown card for visualizing the last 10 control actions and their reasoning.
-
-## Requirements
-
-- Home Assistant Core 2024.1.0 or newer
-- HACS (Home Assistant Community Store) for easy installation (recommended)
-- A central fan entity controllable by percentage
-- At least one humidity or CO2 sensor entity
-
-## Installation
-
-### HACS (Recommended)
-
-1. **Add repository to HACS:**
-	- Go to HACS > Integrations > Menu > Custom repositories
-	- Add your GitHub repository URL (e.g. `https://github.com/your-user/smart_kwl`), select category "Integration"
-2. **Install Smart KWL:**
-	- Find "Smart KWL" in HACS Integrations and install
-3. **Restart Home Assistant**
-4. **Add the integration:**
-	- Go to Settings > Devices & Services > Add Integration > Search for "Smart KWL"
-
-### Manual
-
-1. Copy the `custom_components/smart_kwl` folder into your Home Assistant `config/custom_components/` directory
-2. Restart Home Assistant
-3. Add the integration as above
-
-## Configuration
-
-1. **Add a new Smart KWL integration** via the Home Assistant UI
-2. **Select your fan entity** (must support percentage control)
-3. **Select humidity and/or CO2 sensors** (multiple supported)
-4. **For each sensor, set min/max thresholds** (defaults: humidity 45/60, CO2 700/900)
-5. **Set min/max/default fan levels** (default: 1/8/2)
-6. **(Optional) Configure away mode:** select a binary sensor and away fan level
-7. **(Optional) Configure night mode:** enable, set start/end time, max night fan level, and summer night fan level
-8. **(Optional) Configure summer mode:** select a binary sensor
-9. **Set check interval** (default: 60s)
-10. **(Optional) Select temperature sensors** for incoming, outgoing, outside, and exhaust air
-11. Save and the integration will start controlling your fan
-
-## Dashboard Card
-
-A ready-to-use Markdown card is provided to visualize the last 10 control checks:
-
-1. Copy the contents of `dashboard/smart_kwl_checks_card.yaml`
-2. In Home Assistant, go to your dashboard, add a Manual card, and paste the YAML
-3. The card will show:
-	- Each check run (timestamped)
-	- Per-sensor check details (type, entity, min/max, measured, result)
-	- Summary and final action line (before/after fan speed, reason, status)
-
-If your check log sensor is not `sensor.smart_kwl_check_log`, update the entity id in the card YAML.
-
-## How it works
-
-- Every check interval, the integration evaluates all configured sensors.
-- For each sensor, it logs the min/max, measured value, and scaled demand.
-- The highest demand across all humidity and CO2 sensors determines the fan ramp.
-- Night, away, and summer modes override or cap the fan level as configured.
-- After setting the fan speed, the integration verifies the change and retries if needed.
-- All details are logged and available in the check log sensor for diagnostics.
-
-## Troubleshooting
-
-- **Integration not found in UI:**
-  - Make sure you restarted Home Assistant after installing
-  - For HACS, ensure the repository is added as an Integration, not Plugin
-- **Fan not responding:**
-  - Check that your fan entity supports percentage control
-  - Review the check log sensor for errors or failed verifications
-- **No check log output:**
-  - Wait for at least one check interval to pass
-  - Ensure the check log sensor is enabled and available
-
-## Support & Contributions
-
-- Issues: [GitHub Issues](https://github.com/your-user/smart_kwl/issues)
-- Pull requests welcome! Please open an issue first for major changes.
-
----
-
-© 2026 Your Name or Organization. Licensed under the MIT License.
-
-Smart KWL is a generic, highly-configurable Home Assistant custom integration for managing the fan speed of a central ventilation system. It supports multi-sensor humidity and CO2 control, day/night/away/summer modes, and provides detailed diagnostics for every control action.
-
-## Features
-
-- **Multi-sensor support:** Use any number of humidity and CO2 sensors, each with individual min/max thresholds.
-- **Gradual fan speed control:** Fan speed ramps up or down based on the worst-case demand from all sensors.
-- **Modes:** Supports away, night, and summer modes with dedicated fan levels and time windows.
-- **Periodic checks:** Control logic runs at a configurable interval (default 60s) to avoid excessive fan changes.
-- **Verification:** After each fan speed change, the integration checks if the fan actually updated and retries if needed.
-- **Information entities:** Exposes ON/OFF state, incoming/outgoing/outside/exhaust temperatures, and a detailed check log.
-- **Dashboard card:** Ready-to-use Lovelace Markdown card for visualizing the last 10 control actions and their reasoning.
+- Multi-sensor control for humidity and CO2 with per-sensor thresholds.
+- Dedicated Smart KWL manual fan entity with levels 1-8.
+- Supports both fan targets and climate targets (fan_mode 1-8).
+- Fan levels are discrete and constrained to 1-8 in config flow.
+- Threshold wizard to set min/max for every selected humidity and CO2 sensor.
+- Detailed regular check log for troubleshooting and dashboard display.
 
 ## Requirements
 
-- Home Assistant Core 2024.1.0 or newer
-- HACS (Home Assistant Community Store) for easy installation (recommended)
-- A central fan entity controllable by percentage
-- At least one humidity or CO2 sensor entity
+- Home Assistant Core 2024.1.0 or newer.
+- HACS installed (recommended installation path).
+- A controllable target entity:
+  - fan entity that supports percentage, or
+  - climate entity that supports fan_mode values 1..8.
+- At least one humidity or CO2 sensor.
 
 ## Installation
 
-### HACS (Recommended)
+### HACS (recommended)
 
-1. **Add repository to HACS:**
-	- Go to HACS > Integrations > Menu > Custom repositories
-	- Add your GitHub repository URL (e.g. `https://github.com/your-user/smart_kwl`), select category "Integration"
-2. **Install Smart KWL:**
-	- Find "Smart KWL" in HACS Integrations and install
-3. **Restart Home Assistant**
-4. **Add the integration:**
-	- Go to Settings > Devices & Services > Add Integration > Search for "Smart KWL"
+1. Open HACS -> Integrations -> menu -> Custom repositories.
+2. Add repository URL: https://github.com/BigBasti84/ha_smart-kwl
+3. Category: Integration.
+4. Install Smart KWL.
+5. Restart Home Assistant.
+6. Go to Settings -> Devices and Services -> Add Integration -> Smart KWL.
 
 ### Manual
 
-1. Copy the `custom_components/smart_kwl` folder into your Home Assistant `config/custom_components/` directory
-2. Restart Home Assistant
-3. Add the integration as above
+1. Copy custom_components/smart_kwl into your Home Assistant config/custom_components directory.
+2. Restart Home Assistant.
+3. Add Smart KWL from Settings -> Devices and Services.
 
-## Configuration
+## Configuration Guide
 
-1. **Add a new Smart KWL integration** via the Home Assistant UI
-2. **Select your fan entity** (must support percentage control)
-3. **Select humidity and/or CO2 sensors** (multiple supported)
-4. **For each sensor, set min/max thresholds** (defaults: humidity 45/60, CO2 700/900)
-5. **Set min/max/default fan levels** (default: 1/8/2)
-6. **(Optional) Configure away mode:** select a binary sensor and away fan level
-7. **(Optional) Configure night mode:** enable, set start/end time, max night fan level, and summer night fan level
-8. **(Optional) Configure summer mode:** select a binary sensor
-9. **Set check interval** (default: 60s)
-10. **(Optional) Select temperature sensors** for incoming, outgoing, outside, and exhaust air
-11. Save and the integration will start controlling your fan
+### Core fields
+
+- Target entity (fan or climate):
+  - fan.<...>: Smart KWL writes fan percentage.
+  - climate.<...>: Smart KWL writes climate fan_mode as levels 1..8.
+- Humidity sensors / CO2 sensors:
+  - Select one or more sensors.
+  - After saving the first form, Smart KWL opens threshold steps for each selected sensor.
+- Fan levels:
+  - Min fan level, Max fan level, Default fan level are all discrete 1..8.
+
+### Optional fields
+
+- Away binary sensor: when ON, away fan level becomes the base level.
+- Away fan level: level used while away is active (1..8).
+- Night mode: enables night behavior using start/end window.
+- Night max fan level: hard upper limit during night.
+- Night summer fan level: target level for summer nights.
+- Summer mode binary sensor: toggles summer-night behavior.
+
+### Temperature inputs (optional diagnostics)
+
+These inputs only mirror values into Smart KWL entities for visibility. They do not drive control logic directly.
+
+- Incoming air temperature (outside -> unit): fresh outdoor air entering the ventilation unit.
+- Outgoing supply temperature (unit -> rooms): supply air leaving the unit into rooms.
+- Exhaust extract temperature (rooms -> unit): extract air returning from rooms to the unit.
+- Outside ambient temperature (optional): independent outdoor reference sensor.
+
+## Fan Control Entity
+
+After setup, Smart KWL creates a dedicated fan entity:
+
+- Name: Manual Fan Level
+- Type: fan entity with preset levels 1..8
+- Purpose: lets you manually set a level directly from the UI
+
+Notes:
+
+- Manual changes are applied immediately.
+- Automatic control still runs on the configured interval and may adjust level afterward based on sensor demand and modes.
+
+## Threshold Setup (Humidity and CO2)
+
+For every selected humidity and CO2 sensor, Smart KWL asks for:
+
+- Minimum threshold
+- Maximum threshold
+
+This per-sensor threshold wizard allows independent min/max values for each sensor.
 
 ## Dashboard Card
 
-A ready-to-use Markdown card is provided to visualize the last 10 control checks:
+A ready card is available at dashboard/smart_kwl_checks_card.yaml.
 
-1. Copy the contents of `dashboard/smart_kwl_checks_card.yaml`
-2. In Home Assistant, go to your dashboard, add a Manual card, and paste the YAML
-3. The card will show:
-	- Each check run (timestamped)
-	- Per-sensor check details (type, entity, min/max, measured, result)
-	- Summary and final action line (before/after fan speed, reason, status)
+1. Open your dashboard.
+2. Add a Manual card.
+3. Paste the YAML from that file.
 
-If your check log sensor is not `sensor.smart_kwl_check_log`, update the entity id in the card YAML.
+It shows the latest check runs, sensor evaluations, and final actions.
 
-## How it works
+## Versioning and HACS Updates
 
-- Every check interval, the integration evaluates all configured sensors.
-- For each sensor, it logs the min/max, measured value, and scaled demand.
-- The highest demand across all humidity and CO2 sensors determines the fan ramp.
-- Night, away, and summer modes override or cap the fan level as configured.
-- After setting the fan speed, the integration verifies the change and retries if needed.
-- All details are logged and available in the check log sensor for diagnostics.
+- Integration version is defined in custom_components/smart_kwl/manifest.json.
+- HACS updates are delivered through GitHub releases/tags.
+- Current development release: 0.1.1.
+
+Workflow for next updates:
+
+1. Commit changes.
+2. Bump manifest version.
+3. Create and push a new tag (for example v0.1.2).
+4. HACS will offer the update.
 
 ## Troubleshooting
 
-- **Integration not found in UI:**
-  - Make sure you restarted Home Assistant after installing
-  - For HACS, ensure the repository is added as an Integration, not Plugin
-- **Fan not responding:**
-  - Check that your fan entity supports percentage control
-  - Review the check log sensor for errors or failed verifications
-- **No check log output:**
-  - Wait for at least one check interval to pass
-  - Ensure the check log sensor is enabled and available
+- No threshold pages shown:
+  - Ensure at least one humidity or CO2 sensor is selected.
+- Cannot control target:
+  - Verify selected entity is fan.<...> or climate.<...> with valid fan_mode behavior.
+- No check log updates:
+  - Wait one check interval and confirm sensors have valid numeric states.
 
-## Support & Contributions
+## Support
 
-- Issues: [GitHub Issues](https://github.com/your-user/smart_kwl/issues)
-- Pull requests welcome! Please open an issue first for major changes.
-
----
-
-© 2026 Your Name or Organization. Licensed under the MIT License.
->>>>>>> 8a2f65f (Initial commit: Smart KWL Home Assistant integration)
+- Issues: https://github.com/BigBasti84/ha_smart-kwl/issues

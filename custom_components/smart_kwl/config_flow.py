@@ -61,6 +61,16 @@ def _binary_selector() -> selector.EntitySelector:
     return selector.EntitySelector(selector.EntitySelectorConfig(domain="binary_sensor"))
 
 
+def _fan_target_selector() -> selector.EntitySelector:
+    return selector.EntitySelector(selector.EntitySelectorConfig(domain=["fan", "climate"]))
+
+
+def _level_selector(default: Any) -> selector.NumberSelector:
+    return selector.NumberSelector(
+        selector.NumberSelectorConfig(min=1, max=8, step=1, mode=selector.NumberSelectorMode.BOX),
+    )
+
+
 def _int_in_range(value: Any, minimum: int, maximum: int) -> bool:
     try:
         parsed = int(value)
@@ -94,21 +104,19 @@ class SmartKwlFlowMixin:
         return vol.Schema(
             {
                 vol.Required(CONF_NAME, default=defaults.get(CONF_NAME, "Smart KWL")): str,
-                vol.Required(CONF_FAN_ENTITY, default=defaults.get(CONF_FAN_ENTITY)): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="fan")
-                ),
+                vol.Required(CONF_FAN_ENTITY, default=defaults.get(CONF_FAN_ENTITY)): _fan_target_selector(),
                 vol.Required(CONF_HUMIDITY_SENSORS, default=defaults.get(CONF_HUMIDITY_SENSORS, [])): _sensor_selector(multiple=True),
                 vol.Required(CONF_CO2_SENSORS, default=defaults.get(CONF_CO2_SENSORS, [])): _sensor_selector(multiple=True),
-                vol.Required(CONF_MIN_FAN_LEVEL, default=defaults.get(CONF_MIN_FAN_LEVEL, DEFAULT_MIN_FAN_LEVEL)): vol.All(vol.Coerce(int), vol.Range(min=1, max=100)),
-                vol.Required(CONF_MAX_FAN_LEVEL, default=defaults.get(CONF_MAX_FAN_LEVEL, DEFAULT_MAX_FAN_LEVEL)): vol.All(vol.Coerce(int), vol.Range(min=1, max=100)),
-                vol.Required(CONF_DEFAULT_FAN_LEVEL, default=defaults.get(CONF_DEFAULT_FAN_LEVEL, DEFAULT_FAN_LEVEL)): vol.All(vol.Coerce(int), vol.Range(min=1, max=100)),
+                vol.Required(CONF_MIN_FAN_LEVEL, default=defaults.get(CONF_MIN_FAN_LEVEL, DEFAULT_MIN_FAN_LEVEL)): _level_selector(defaults.get(CONF_MIN_FAN_LEVEL, DEFAULT_MIN_FAN_LEVEL)),
+                vol.Required(CONF_MAX_FAN_LEVEL, default=defaults.get(CONF_MAX_FAN_LEVEL, DEFAULT_MAX_FAN_LEVEL)): _level_selector(defaults.get(CONF_MAX_FAN_LEVEL, DEFAULT_MAX_FAN_LEVEL)),
+                vol.Required(CONF_DEFAULT_FAN_LEVEL, default=defaults.get(CONF_DEFAULT_FAN_LEVEL, DEFAULT_FAN_LEVEL)): _level_selector(defaults.get(CONF_DEFAULT_FAN_LEVEL, DEFAULT_FAN_LEVEL)),
                 vol.Optional(CONF_AWAY_SENSOR, default=defaults.get(CONF_AWAY_SENSOR)): _binary_selector(),
-                vol.Optional(CONF_AWAY_FAN_LEVEL, default=defaults.get(CONF_AWAY_FAN_LEVEL, DEFAULT_AWAY_FAN_LEVEL)): vol.All(vol.Coerce(int), vol.Range(min=1, max=100)),
+                vol.Optional(CONF_AWAY_FAN_LEVEL, default=defaults.get(CONF_AWAY_FAN_LEVEL, DEFAULT_AWAY_FAN_LEVEL)): _level_selector(defaults.get(CONF_AWAY_FAN_LEVEL, DEFAULT_AWAY_FAN_LEVEL)),
                 vol.Required(CONF_NIGHT_ENABLED, default=defaults.get(CONF_NIGHT_ENABLED, DEFAULT_NIGHT_ENABLED)): bool,
                 vol.Required(CONF_NIGHT_START, default=defaults.get(CONF_NIGHT_START, DEFAULT_NIGHT_START)): selector.TimeSelector(),
                 vol.Required(CONF_NIGHT_END, default=defaults.get(CONF_NIGHT_END, DEFAULT_NIGHT_END)): selector.TimeSelector(),
-                vol.Required(CONF_NIGHT_MAX_FAN_LEVEL, default=defaults.get(CONF_NIGHT_MAX_FAN_LEVEL, DEFAULT_NIGHT_MAX_FAN_LEVEL)): vol.All(vol.Coerce(int), vol.Range(min=1, max=100)),
-                vol.Required(CONF_NIGHT_SUMMER_FAN_LEVEL, default=defaults.get(CONF_NIGHT_SUMMER_FAN_LEVEL, DEFAULT_NIGHT_SUMMER_FAN_LEVEL)): vol.All(vol.Coerce(int), vol.Range(min=1, max=100)),
+                vol.Required(CONF_NIGHT_MAX_FAN_LEVEL, default=defaults.get(CONF_NIGHT_MAX_FAN_LEVEL, DEFAULT_NIGHT_MAX_FAN_LEVEL)): _level_selector(defaults.get(CONF_NIGHT_MAX_FAN_LEVEL, DEFAULT_NIGHT_MAX_FAN_LEVEL)),
+                vol.Required(CONF_NIGHT_SUMMER_FAN_LEVEL, default=defaults.get(CONF_NIGHT_SUMMER_FAN_LEVEL, DEFAULT_NIGHT_SUMMER_FAN_LEVEL)): _level_selector(defaults.get(CONF_NIGHT_SUMMER_FAN_LEVEL, DEFAULT_NIGHT_SUMMER_FAN_LEVEL)),
                 vol.Optional(CONF_SUMMER_MODE_SENSOR, default=defaults.get(CONF_SUMMER_MODE_SENSOR)): _binary_selector(),
                 vol.Required(CONF_CHECK_INTERVAL, default=defaults.get(CONF_CHECK_INTERVAL, DEFAULT_CHECK_INTERVAL)): vol.All(vol.Coerce(int), vol.Range(min=10, max=3600)),
                 vol.Optional(CONF_INCOMING_TEMPERATURE_ENTITY, default=defaults.get(CONF_INCOMING_TEMPERATURE_ENTITY)): _sensor_selector(),
@@ -121,7 +129,6 @@ class SmartKwlFlowMixin:
     def _threshold_schema(self, entity_id: str, min_default: float, max_default: float) -> vol.Schema:
         return vol.Schema(
             {
-                vol.Required(CONF_SENSOR_ENTITY_ID, default=entity_id): str,
                 vol.Required(CONF_SENSOR_MIN, default=min_default): vol.Coerce(float),
                 vol.Required(CONF_SENSOR_MAX, default=max_default): vol.Coerce(float),
             }
@@ -213,7 +220,7 @@ class SmartKwlFlowMixin:
             step_id="humidity_threshold",
             data_schema=self._threshold_schema(entity_id, d_min, d_max),
             errors=errors,
-            description_placeholders={"entity_id": entity_id, "sensor_type": "humidity"},
+            description_placeholders={"entity_id": entity_id, "sensor_type": "humidity", "default_min": str(d_min), "default_max": str(d_max)},
         )
 
     async def async_step_co2_threshold(self, user_input: dict[str, Any] | None = None):
@@ -243,7 +250,7 @@ class SmartKwlFlowMixin:
             step_id="co2_threshold",
             data_schema=self._threshold_schema(entity_id, d_min, d_max),
             errors=errors,
-            description_placeholders={"entity_id": entity_id, "sensor_type": "CO2"},
+            description_placeholders={"entity_id": entity_id, "sensor_type": "CO2", "default_min": str(d_min), "default_max": str(d_max)},
         )
 
 
@@ -265,7 +272,19 @@ class SmartKwlConfigFlow(SmartKwlFlowMixin, config_entries.ConfigFlow, domain=DO
                 return await self._next_step_or_create()
             errors["base"] = error
 
-        return self.async_show_form(step_id="user", data_schema=self._general_schema(user_input or {}), errors=errors)
+        return self.async_show_form(
+            step_id="user",
+            data_schema=self._general_schema(user_input or {}),
+            errors=errors,
+            description_placeholders={
+                "level_min": "1",
+                "level_max": "8",
+                "incoming_expl": "Incoming: fresh outdoor air entering the unit (before heat exchanger).",
+                "outgoing_expl": "Outgoing: supply air leaving the unit to your rooms (after heat exchanger).",
+                "outside_expl": "Outside: optional ambient outdoor reference sensor.",
+                "exhaust_expl": "Exhaust: extract air from rooms entering the unit (before heat exchanger).",
+            },
+        )
 
     def _create_or_update_entry(self):
         title = self._data.get(CONF_NAME, "Smart KWL")
@@ -302,7 +321,19 @@ class SmartKwlOptionsFlow(SmartKwlFlowMixin, config_entries.OptionsFlow):
                 return await self._next_step_or_create()
             errors["base"] = error
 
-        return self.async_show_form(step_id="init", data_schema=self._general_schema(current), errors=errors)
+        return self.async_show_form(
+            step_id="init",
+            data_schema=self._general_schema(current),
+            errors=errors,
+            description_placeholders={
+                "level_min": "1",
+                "level_max": "8",
+                "incoming_expl": "Incoming: fresh outdoor air entering the unit (before heat exchanger).",
+                "outgoing_expl": "Outgoing: supply air leaving the unit to your rooms (after heat exchanger).",
+                "outside_expl": "Outside: optional ambient outdoor reference sensor.",
+                "exhaust_expl": "Exhaust: extract air from rooms entering the unit (before heat exchanger).",
+            },
+        )
 
     def _create_or_update_entry(self):
         data = self._finalize_data()

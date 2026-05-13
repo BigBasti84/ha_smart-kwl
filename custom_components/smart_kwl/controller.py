@@ -126,6 +126,74 @@ class SmartKwlController:
         """Return current fan state."""
         return self._state(self._config(CONF_FAN_ENTITY))
 
+    def level_bounds(self) -> tuple[int, int]:
+        """Return configured minimum and maximum fan levels."""
+        return (int(self._config(CONF_MIN_FAN_LEVEL, 1)), int(self._config(CONF_MAX_FAN_LEVEL, 8)))
+
+    def current_percentage(self) -> int | None:
+        """Return current effective fan percentage for diagnostics and entities."""
+        fan_entity = self._config(CONF_FAN_ENTITY)
+        return self._fan_percentage(fan_entity)
+
+    def current_level(self) -> int | None:
+        """Return current effective fan level."""
+        _, max_level = self.level_bounds()
+        return self._percentage_to_level(self.current_percentage(), max_level)
+
+    async def async_set_manual_level(self, level: int) -> bool:
+        """Set fan to a specific level immediately and record diagnostics."""
+        min_level, max_level = self.level_bounds()
+        target_level = max(min_level, min(max_level, int(level)))
+        decision = ControlDecision(
+            level=target_level,
+            percentage=self._level_to_percentage(target_level, max_level),
+            reason="manual",
+        )
+
+        fan_entity = self._config(CONF_FAN_ENTITY)
+        before_percentage = self._fan_percentage(fan_entity)
+        before_level = self._percentage_to_level(before_percentage, max_level)
+
+        success = await self._apply_fan_level_with_verification(decision)
+
+        after_percentage = self._fan_percentage(fan_entity)
+        after_level = self._percentage_to_level(after_percentage, max_level)
+        self._status["target_level"] = target_level
+        self._status["target_percentage"] = decision.percentage
+        self._status["last_reason"] = "manual"
+        self._status["last_apply_success"] = success
+        self._status["last_apply"] = dt_util.utcnow().isoformat()
+        if success:
+            self._last_level = target_level
+            self._status["last_error"] = None
+            self._append_check_run(
+                ["manual_set | target_level=%s | target_percentage=%s" % (target_level, decision.percentage)],
+                self._action_line(
+                    before_level,
+                    before_percentage,
+                    after_level,
+                    after_percentage,
+                    "manual",
+                    "applied",
+                ),
+            )
+        else:
+            self._status["last_error"] = "failed_to_verify_fan_speed"
+            self._append_check_run(
+                ["manual_set | target_level=%s | target_percentage=%s" % (target_level, decision.percentage)],
+                self._action_line(
+                    before_level,
+                    before_percentage,
+                    after_level,
+                    after_percentage,
+                    "manual",
+                    "verification_failed",
+                ),
+            )
+
+        self._notify()
+        return success
+
     def _notify(self) -> None:
         for listener in list(self._listeners):
             listener()
@@ -358,12 +426,24 @@ class SmartKwlController:
 
         # Try once and retry once if verification fails.
         for attempt in (1, 2):
-            await self.hass.services.async_call(
-                "fan",
-                "set_percentage",
-                {"entity_id": fan_entity, "percentage": decision.percentage},
-                blocking=True,
-            )
+            if fan_entity.startswith("fan."):
+                await self.hass.services.async_call(
+                    "fan",
+                    "set_percentage",
+                    {"entity_id": fan_entity, "percentage": decision.percentage},
+                    blocking=True,
+                )
+            elif fan_entity.startswith("climate."):
+                await self.hass.services.async_call(
+                    "climate",
+                    "set_fan_mode",
+                    {"entity_id": fan_entity, "fan_mode": str(decision.level)},
+                    blocking=True,
+                )
+            else:
+                _LOGGER.warning("Unsupported target entity domain for %s", fan_entity)
+                return False
+
             await asyncio.sleep(1)
 
             actual_percentage = self._fan_percentage(fan_entity)
@@ -387,6 +467,16 @@ class SmartKwlController:
 
         if fan_state.state == STATE_OFF:
             return 0
+
+        _, max_level = self.level_bounds()
+
+        if fan_entity.startswith("climate."):
+            raw_mode = fan_state.attributes.get("fan_mode")
+            try:
+                level = int(raw_mode)
+            except (TypeError, ValueError):
+                return None
+            return self._level_to_percentage(level, max_level)
 
         raw_percentage = fan_state.attributes.get("percentage")
         if raw_percentage is None:
