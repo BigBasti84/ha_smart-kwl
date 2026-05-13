@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from .const import DOMAIN
 from .controller import SmartKwlController
 
-PLATFORMS = ["sensor", "binary_sensor", "fan", "button"]
+PLATFORMS = ["sensor", "binary_sensor", "fan", "button", "number"]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

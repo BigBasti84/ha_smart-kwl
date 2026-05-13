@@ -24,6 +24,8 @@ CONF_NIGHT_SUMMER_FAN_LEVEL = "night_summer_fan_level"
 
 CONF_SUMMER_MODE_SENSOR = "summer_mode_sensor"
 CONF_CHECK_INTERVAL = "check_interval"
+CONF_MANUAL_INCREASE_HOLD_HOURS = "manual_increase_hold_hours"
+CONF_MANUAL_OVERRIDE_DEFAULT_HOURS = "manual_override_default_hours"
 
 CONF_INCOMING_TEMPERATURE_ENTITY = "incoming_temperature_entity"
 CONF_OUTGOING_TEMPERATURE_ENTITY = "outgoing_temperature_entity"
@@ -52,6 +54,8 @@ DEFAULT_NIGHT_MAX_FAN_LEVEL = 5
 DEFAULT_NIGHT_SUMMER_FAN_LEVEL = 4
 
 DEFAULT_CHECK_INTERVAL = 60
+DEFAULT_MANUAL_INCREASE_HOLD_HOURS = 2
+DEFAULT_MANUAL_OVERRIDE_DEFAULT_HOURS = 2
 
 # Filter maintenance
 FILTER_CLEAN_INTERVAL_DAYS = 60   # warn after 1 month (30d), red after 2 months (60d)

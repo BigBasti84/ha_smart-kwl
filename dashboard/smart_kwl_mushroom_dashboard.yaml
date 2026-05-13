@@ -11,25 +11,36 @@ views:
       - type: entities
         title: Status
         entities:
-          - binary_sensor.smart_kwl_ventilation_on
-          - binary_sensor.smart_kwl_summer_mode_active
-          - binary_sensor.smart_kwl_night_mode_active
+          - binary_sensor.ventilation_on
+          - binary_sensor.summer_mode_active
+          - binary_sensor.night_mode_active
+          - binary_sensor.smart_kwl_manual_override_active
+
+      - type: entities
+        title: Manual Override
+        entities:
+          - number.smart_kwl_manual_override_level
+          - number.smart_kwl_manual_override_duration
+          - button.smart_kwl_apply_manual_override
+          - sensor.smart_kwl_manual_override_level_status
+          - sensor.smart_kwl_manual_override_until
+          - sensor.smart_kwl_external_manual_hold
 
       - type: entities
         title: Current Values
         entities:
-          - sensor.smart_kwl_target_fan_level
-          - sensor.smart_kwl_target_fan_percentage
-          - sensor.smart_kwl_humidity_combined
-          - sensor.smart_kwl_co2_combined
+          - sensor.target_fan_level
+          - sensor.target_fan_percentage
+          - sensor.humidity_combined
+          - sensor.co2_combined
 
       - type: entities
         title: Thresholds
         entities:
-          - sensor.smart_kwl_humidity_low
-          - sensor.smart_kwl_humidity_high
-          - sensor.smart_kwl_co2_low
-          - sensor.smart_kwl_co2_high
+          - sensor.humidity_low
+          - sensor.humidity_high
+          - sensor.co2_low
+          - sensor.co2_high
 
       - type: heading
         heading: Temperatures
@@ -37,25 +48,25 @@ views:
       - type: entities
         title: Temperature Sensors
         entities:
-          - sensor.smart_kwl_incoming_temperature
-          - sensor.smart_kwl_outgoing_temperature
-          - sensor.smart_kwl_outside_temperature
-          - sensor.smart_kwl_exhaust_temperature
+          - sensor.incoming_temperature
+          - sensor.outgoing_temperature
+          - sensor.outside_temperature
+          - sensor.exhaust_temperature
 
       - type: history-graph
         title: Temperature History (24h)
         hours_to_show: 24
         entities:
-          - sensor.smart_kwl_incoming_temperature
-          - sensor.smart_kwl_outgoing_temperature
-          - sensor.smart_kwl_outside_temperature
-          - sensor.smart_kwl_exhaust_temperature
+          - sensor.incoming_temperature
+          - sensor.outgoing_temperature
+          - sensor.outside_temperature
+          - sensor.exhaust_temperature
 
       - type: history-graph
         title: Fan Speed History (24h)
         hours_to_show: 24
         entities:
-          - sensor.smart_kwl_target_fan_level
+          - sensor.target_fan_level
 
       - type: heading
         heading: Filter Maintenance
@@ -76,25 +87,18 @@ views:
       - type: entities
         title: Last Check
         entities:
-          - sensor.smart_kwl_check_log
+          - sensor.check_log
 
       - type: markdown
         title: Recent Changes (Last 5)
         content: |
-          {% set history = state_attr('sensor.smart_kwl_check_log', 'check_history') or [] %}
-          {% set counts = namespace(shown=0) %}
-          {% if history | count == 0 %}
-          No changes recorded yet.
+          {% set changes = state_attr('sensor.check_log', 'change_history') or [] %}
+          {% if changes | count == 0 %}
+          No level changes recorded yet.
           {% else %}
-          {% for run in history %}
-          {% set action = (run | select('search', '^action \|') | list | first) %}
-          {% if action and 'status=applied' in action and counts.shown < 5 %}
-          {% set counts.shown = counts.shown + 1 %}
-          {% set ts = run[0].split('at=')[-1] if run | count > 0 else '' %}
+          {% for change in changes[:5] %}
+          {% set ts = change.at if change.at is defined else '' %}
           {% set ts_fmt = ts[:10].split('-') | reverse | join('-') ~ ' ' ~ ts[11:16] if ts | length >= 16 else ts %}
-          {% set reason_raw = action.split('reason=')[-1].split(' |')[0] if 'reason=' in action else 'unknown' %}
-          {% set level = action.split('after_level=')[-1].split(' ')[0] if 'after_level=' in action else 'n/a' %}
-          **{{ ts_fmt }}** — Fan → **{{ level }}** ({{ reason_raw }})
-          {% endif %}
+          **{{ ts_fmt }}** - Fan {{ change.before_level }} -> **{{ change.after_level }}** ({{ change.reason }})
           {% endfor %}
           {% endif %}

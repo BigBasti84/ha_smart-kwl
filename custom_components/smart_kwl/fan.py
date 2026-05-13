@@ -32,6 +32,7 @@ class SmartKwlManualFan(FanEntity):
     def __init__(self, controller: SmartKwlController, entry: ConfigEntry) -> None:
         self._controller = controller
         self._attr_unique_id = f"{entry.entry_id}_manual_fan"
+        self._attr_object_id = f"{DOMAIN}_manual_fan_level"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=entry.title,

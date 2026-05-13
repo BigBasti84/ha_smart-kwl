@@ -54,6 +54,9 @@ async def async_setup_entry(
         SmartKwlDiagnosticSensor(controller, entry, "CO2 Combined", "co2_combined", "co2_combined", "ppm"),
         SmartKwlDiagnosticSensor(controller, entry, "CO2 Low", "co2_low", "co2_low", "ppm"),
         SmartKwlDiagnosticSensor(controller, entry, "CO2 High", "co2_high", "co2_high", "ppm"),
+        SmartKwlDiagnosticSensor(controller, entry, "Manual Override Level", "manual_override_level_status", "manual_override_level"),
+        SmartKwlDiagnosticSensor(controller, entry, "Manual Override Until", "manual_override_until", "manual_override_until"),
+        SmartKwlDiagnosticSensor(controller, entry, "External Manual Hold", "external_manual_hold", "external_manual_hold"),
         SmartKwlCheckLogSensor(controller, entry),
         SmartKwlFilterSensor(controller, entry, "Filter Days Since Cleaning", "filter_days_since_cleaning", "filter_days_since_cleaning", "d"),
         SmartKwlFilterSensor(controller, entry, "Filter Days Remaining", "filter_days_remaining", "filter_days_remaining_life", "d"),
@@ -79,6 +82,7 @@ class SmartKwlBaseEntity(RestoreEntity):
         self._controller = controller
         self._entry = entry
         self._attr_unique_id = f"{entry.entry_id}_{unique_suffix}"
+        self._attr_object_id = f"{DOMAIN}_{unique_suffix}"
         self._attr_name = name
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
@@ -139,6 +143,7 @@ class SmartKwlCheckLogSensor(SmartKwlBaseEntity, SensorEntity):
         return {
             "last_check_lines": self._controller.status.get("last_check_lines", []),
             "check_history": self._controller.status.get("check_history", []),
+            "change_history": self._controller.status.get("change_history", []),
         }
 
 

@@ -24,6 +24,8 @@ from .const import (
     CONF_FAN_ENTITY,
     CONF_HUMIDITY_CONFIGS,
     CONF_MAX_FAN_LEVEL,
+    CONF_MANUAL_INCREASE_HOLD_HOURS,
+    CONF_MANUAL_OVERRIDE_DEFAULT_HOURS,
     CONF_MIN_FAN_LEVEL,
     CONF_NIGHT_ENABLED,
     CONF_NIGHT_END,
@@ -34,6 +36,8 @@ from .const import (
     CONF_SENSOR_MAX,
     CONF_SENSOR_MIN,
     CONF_SUMMER_MODE_SENSOR,
+    DEFAULT_MANUAL_INCREASE_HOLD_HOURS,
+    DEFAULT_MANUAL_OVERRIDE_DEFAULT_HOURS,
     FILTER_CLEAN_INTERVAL_DAYS,
     FILTER_LIFETIME_MONTHS,
     FILTER_LIFETIME_WARN_DAYS,
@@ -75,6 +79,16 @@ class SmartKwlController:
         self._warned_unavailable: set[str] = set()
         self._warned_invalid: set[str] = set()
         self._filter_store: FilterStore | None = None
+        self._external_increase_hold_until: datetime | None = None
+        self._external_increase_level: int | None = None
+        self._external_decrease_level: int | None = None
+        self._external_decrease_reference_auto_level: int | None = None
+        self._manual_override_until: datetime | None = None
+        self._manual_override_level: int | None = None
+        self._pending_manual_override_level: int = int(self._config(CONF_DEFAULT_FAN_LEVEL, 2))
+        self._pending_manual_override_hours: int = int(
+            self._config(CONF_MANUAL_OVERRIDE_DEFAULT_HOURS, DEFAULT_MANUAL_OVERRIDE_DEFAULT_HOURS)
+        )
         self._status: dict[str, Any] = {
             "last_reason": "init",
             "target_level": None,
@@ -93,6 +107,13 @@ class SmartKwlController:
             "last_action_line": "",
             "last_check_lines": [],
             "check_history": [],
+            "change_history": [],
+            "manual_override_active": False,
+            "manual_override_level": None,
+            "manual_override_until": None,
+            "manual_override_pending_level": self._pending_manual_override_level,
+            "manual_override_pending_hours": self._pending_manual_override_hours,
+            "external_manual_hold": "none",
             "filter_last_cleaned": None,
             "filter_install_date": None,
             "filter_days_since_cleaning": None,
@@ -103,6 +124,12 @@ class SmartKwlController:
 
     async def async_start(self) -> None:
         """Start tracking configured entities and periodic checks."""
+        min_level, max_level = self.level_bounds()
+        self._pending_manual_override_level = max(min_level, min(max_level, self._pending_manual_override_level))
+        self._pending_manual_override_hours = max(1, min(24, self._pending_manual_override_hours))
+        self._status["manual_override_pending_level"] = self._pending_manual_override_level
+        self._status["manual_override_pending_hours"] = self._pending_manual_override_hours
+
         self._filter_store = FilterStore(self.hass, self.entry.entry_id)
         await self._filter_store.async_load()
         self._update_filter_status()
@@ -166,6 +193,100 @@ class SmartKwlController:
         """Return current effective fan level."""
         _, max_level = self.level_bounds()
         return self._percentage_to_level(self.current_percentage(), max_level)
+
+    def pending_manual_override_level(self) -> int:
+        """Return configured pending manual override level."""
+        return self._pending_manual_override_level
+
+    def pending_manual_override_hours(self) -> int:
+        """Return configured pending manual override duration in hours."""
+        return self._pending_manual_override_hours
+
+    def set_pending_manual_override_level(self, level: int) -> None:
+        """Update pending manual override level for dashboard control."""
+        min_level, max_level = self.level_bounds()
+        self._pending_manual_override_level = max(min_level, min(max_level, int(level)))
+        self._status["manual_override_pending_level"] = self._pending_manual_override_level
+        self._notify()
+
+    def set_pending_manual_override_hours(self, hours: int) -> None:
+        """Update pending manual override duration in hours."""
+        self._pending_manual_override_hours = max(1, min(24, int(hours)))
+        self._status["manual_override_pending_hours"] = self._pending_manual_override_hours
+        self._notify()
+
+    async def async_apply_manual_override(self) -> bool:
+        """Activate a fixed manual fan level for the configured duration."""
+        min_level, max_level = self.level_bounds()
+        level = max(min_level, min(max_level, int(self._pending_manual_override_level)))
+        hours = max(1, min(24, int(self._pending_manual_override_hours)))
+        now = dt_util.utcnow()
+
+        self._manual_override_level = level
+        self._manual_override_until = now + timedelta(hours=hours)
+        self._status["manual_override_active"] = True
+        self._status["manual_override_level"] = level
+        self._status["manual_override_until"] = self._manual_override_until.isoformat()
+
+        # Manual override supersedes temporary external holds.
+        self._external_increase_hold_until = None
+        self._external_increase_level = None
+        self._external_decrease_level = None
+        self._external_decrease_reference_auto_level = None
+        self._status["external_manual_hold"] = "none"
+
+        decision = ControlDecision(
+            level=level,
+            percentage=self._level_to_percentage(level, max_level),
+            reason="manual_override",
+        )
+
+        fan_entity = self._config(CONF_FAN_ENTITY)
+        before_percentage = self._fan_percentage(fan_entity)
+        before_level = self._percentage_to_level(before_percentage, max_level)
+        success = await self._apply_fan_level_with_verification(decision)
+        after_percentage = self._fan_percentage(fan_entity)
+        after_level = self._percentage_to_level(after_percentage, max_level)
+
+        self._status["target_level"] = level
+        self._status["target_percentage"] = decision.percentage
+        self._status["last_reason"] = "manual_override"
+        self._status["last_apply_success"] = success
+        self._status["last_apply"] = now.isoformat()
+        if success:
+            self._last_apply = now
+            self._last_level = level
+            self._status["last_error"] = None
+            self._append_check_run(
+                [
+                    "manual_override | target_level=%s | duration_hours=%s" % (level, hours),
+                    "manual_override | active_until=%s" % self._manual_override_until.isoformat(),
+                ],
+                self._action_line(
+                    before_level,
+                    before_percentage,
+                    after_level,
+                    after_percentage,
+                    "manual_override",
+                    "applied",
+                ),
+            )
+        else:
+            self._status["last_error"] = "failed_to_verify_fan_speed"
+            self._append_check_run(
+                ["manual_override | target_level=%s | duration_hours=%s" % (level, hours)],
+                self._action_line(
+                    before_level,
+                    before_percentage,
+                    after_level,
+                    after_percentage,
+                    "manual_override",
+                    "verification_failed",
+                ),
+            )
+
+        self._notify()
+        return success
 
     async def async_mark_filters_cleaned(self) -> None:
         """Record that filters have been cleaned right now."""
@@ -286,6 +407,140 @@ class SmartKwlController:
         for listener in list(self._listeners):
             listener()
 
+    def _handle_external_manual_change(
+        self,
+        observed_level: int | None,
+        auto_level: int,
+        now: datetime,
+        detail_lines: list[str],
+    ) -> None:
+        """Detect fan speed changes not initiated by this controller."""
+        if observed_level is None:
+            return
+        if self._last_level is None:
+            self._last_level = observed_level
+            return
+        if observed_level == self._last_level:
+            return
+
+        if observed_level > self._last_level:
+            hold_hours = int(self._config(CONF_MANUAL_INCREASE_HOLD_HOURS, DEFAULT_MANUAL_INCREASE_HOLD_HOURS))
+            self._external_increase_level = observed_level
+            self._external_increase_hold_until = now + timedelta(hours=hold_hours)
+            self._external_decrease_level = None
+            self._external_decrease_reference_auto_level = None
+            self._status["external_manual_hold"] = "increase"
+            detail_lines.append(
+                "manual_external | type=increase | observed_level=%s | hold_until=%s"
+                % (observed_level, self._external_increase_hold_until.isoformat())
+            )
+        else:
+            self._external_decrease_level = observed_level
+            self._external_decrease_reference_auto_level = auto_level
+            self._external_increase_level = None
+            self._external_increase_hold_until = None
+            self._status["external_manual_hold"] = "decrease"
+            detail_lines.append(
+                "manual_external | type=decrease | observed_level=%s | base_auto_level=%s"
+                % (observed_level, auto_level)
+            )
+
+        self._last_level = observed_level
+
+    def _apply_manual_constraints(
+        self,
+        decision: ControlDecision,
+        now: datetime,
+        detail_lines: list[str],
+    ) -> ControlDecision:
+        """Apply manual override and external hold rules to automation decision."""
+        min_level, max_level = self.level_bounds()
+        target_level = decision.level
+        reason = decision.reason
+
+        # Explicit dashboard manual override fixes speed for duration.
+        if self._manual_override_until is not None and self._manual_override_level is not None:
+            if now < self._manual_override_until:
+                target_level = max(min_level, min(max_level, self._manual_override_level))
+                reason = "manual_override"
+                self._status["manual_override_active"] = True
+                self._status["manual_override_level"] = target_level
+                self._status["manual_override_until"] = self._manual_override_until.isoformat()
+                detail_lines.append(
+                    "manual_override | active=yes | level=%s | until=%s"
+                    % (target_level, self._manual_override_until.isoformat())
+                )
+                return ControlDecision(
+                    level=target_level,
+                    percentage=self._level_to_percentage(target_level, max_level),
+                    reason=reason,
+                )
+
+            self._manual_override_until = None
+            self._manual_override_level = None
+            self._status["manual_override_active"] = False
+            self._status["manual_override_level"] = None
+            self._status["manual_override_until"] = None
+            detail_lines.append("manual_override | active=no | reason=expired")
+
+        self._status["manual_override_active"] = False
+        self._status["manual_override_level"] = None
+        self._status["manual_override_until"] = None
+
+        # External manual increase: keep at least this level for configured hold duration.
+        if self._external_increase_hold_until is not None and self._external_increase_level is not None:
+            if now < self._external_increase_hold_until:
+                if target_level < self._external_increase_level:
+                    target_level = self._external_increase_level
+                    reason = "manual_external_increase_hold"
+                    detail_lines.append(
+                        "manual_hold | type=increase | enforced_level=%s | until=%s"
+                        % (target_level, self._external_increase_hold_until.isoformat())
+                    )
+                else:
+                    # Event-driven increase beyond manual level is allowed immediately.
+                    self._external_increase_hold_until = None
+                    self._external_increase_level = None
+                    self._status["external_manual_hold"] = "none"
+                    detail_lines.append("manual_hold | type=increase | released=auto_higher")
+            else:
+                self._external_increase_hold_until = None
+                self._external_increase_level = None
+                self._status["external_manual_hold"] = "none"
+                detail_lines.append("manual_hold | type=increase | released=expired")
+
+        # External manual decrease: keep reduced level until automation decision changes.
+        if self._external_decrease_level is not None:
+            if self._external_decrease_reference_auto_level is None:
+                self._external_decrease_reference_auto_level = target_level
+
+            if target_level == self._external_decrease_reference_auto_level:
+                if target_level > self._external_decrease_level:
+                    target_level = self._external_decrease_level
+                    reason = "manual_external_decrease_hold"
+                    detail_lines.append(
+                        "manual_hold | type=decrease | enforced_level=%s | waiting_for_new_event=yes"
+                        % target_level
+                    )
+            else:
+                self._external_decrease_level = None
+                self._external_decrease_reference_auto_level = None
+                self._status["external_manual_hold"] = "none"
+                detail_lines.append("manual_hold | type=decrease | released=new_event")
+
+        if self._external_increase_level is not None and self._external_increase_hold_until is not None:
+            self._status["external_manual_hold"] = "increase"
+        elif self._external_decrease_level is not None:
+            self._status["external_manual_hold"] = "decrease"
+        else:
+            self._status["external_manual_hold"] = "none"
+
+        return ControlDecision(
+            level=max(min_level, min(max_level, target_level)),
+            percentage=self._level_to_percentage(max(min_level, min(max_level, target_level)), max_level),
+            reason=reason,
+        )
+
     def _sensor_entities(self, key: str) -> list[str]:
         configs: list[dict[str, Any]] = self._config(key, [])
         return [cfg.get(CONF_SENSOR_ENTITY_ID) for cfg in configs if cfg.get(CONF_SENSOR_ENTITY_ID)]
@@ -318,11 +573,14 @@ class SmartKwlController:
         before_percentage = self._fan_percentage(fan_entity)
         before_level = self._percentage_to_level(before_percentage, int(self._config(CONF_MAX_FAN_LEVEL, 8)))
 
+        now = dt_util.utcnow()
+        self._handle_external_manual_change(before_level, decision.level, now, evaluation.detail_lines)
+        decision = self._apply_manual_constraints(decision, now, evaluation.detail_lines)
+
         self._status["target_level"] = decision.level
         self._status["target_percentage"] = decision.percentage
         self._status["last_reason"] = decision.reason
 
-        now = dt_util.utcnow()
         interval = timedelta(seconds=int(self._config(CONF_CHECK_INTERVAL, 60)))
         if not force and self._last_apply is not None and now - self._last_apply < interval:
             after_percentage = self._fan_percentage(fan_entity)
@@ -647,6 +905,47 @@ class SmartKwlController:
         self._status["check_history"] = history[:10]
         self._status["last_check_lines"] = lines
         self._status["last_action_line"] = action_line
+
+        change = self._parse_action_change(timestamp, action_line)
+        if change is not None:
+            change_history: list[dict[str, str]] = list(self._status.get("change_history", []))
+            change_history.insert(0, change)
+            # Keep the latest 50 level-change events for dashboard display.
+            self._status["change_history"] = change_history[:50]
+
+    @staticmethod
+    def _parse_action_change(timestamp: str, action_line: str) -> dict[str, str] | None:
+        """Extract level-change details from an action log line."""
+        if not action_line.startswith("action |"):
+            return None
+
+        def _extract(field: str) -> str | None:
+            token = f"{field}="
+            if token not in action_line:
+                return None
+            return action_line.split(token, 1)[1].split(" |", 1)[0].strip()
+
+        before_raw = _extract("before_level")
+        after_raw = _extract("after_level")
+        reason = _extract("reason") or "unknown"
+        status = _extract("status") or "unknown"
+        if before_raw is None or after_raw is None:
+            return None
+
+        before_level = before_raw.split(" ", 1)[0]
+        after_level = after_raw.split(" ", 1)[0]
+        if before_level in {"n/a", "None"} or after_level in {"n/a", "None"}:
+            return None
+        if before_level == after_level:
+            return None
+
+        return {
+            "at": timestamp,
+            "before_level": before_level,
+            "after_level": after_level,
+            "reason": reason,
+            "status": status,
+        }
 
     @staticmethod
     def _fmt_level(level: int | None) -> str:

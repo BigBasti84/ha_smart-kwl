@@ -25,6 +25,7 @@ async def async_setup_entry(
             SmartKwlVentilationState(controller, entry),
             SmartKwlModeState(controller, entry, "Summer Mode Active", "summer_mode_active", "summer_mode_active"),
             SmartKwlModeState(controller, entry, "Night Mode Active", "night_mode_active", "night_mode_active"),
+            SmartKwlModeState(controller, entry, "Manual Override Active", "manual_override_active", "manual_override_active"),
         ]
     )
 
@@ -38,6 +39,7 @@ class SmartKwlVentilationState(BinarySensorEntity):
     def __init__(self, controller: SmartKwlController, entry: ConfigEntry) -> None:
         self._controller = controller
         self._attr_unique_id = f"{entry.entry_id}_ventilation_on"
+        self._attr_object_id = f"{DOMAIN}_ventilation_on"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=entry.title,
@@ -77,6 +79,7 @@ class SmartKwlModeState(BinarySensorEntity):
         self._status_key = status_key
         self._attr_name = name
         self._attr_unique_id = f"{entry.entry_id}_{unique_suffix}"
+        self._attr_object_id = f"{DOMAIN}_{unique_suffix}"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=entry.title,

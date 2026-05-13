@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.1.14] - 2026-05-13
+### Added
+- External manual fan change handling:
+	- Manual decrease is held until a new automation event occurs
+	- Manual increase is held for a configurable duration and can be exceeded by higher event-driven demand
+- New integration settings:
+	- `manual_increase_hold_hours`
+	- `manual_override_default_hours`
+- Timed manual override controls:
+	- `number.smart_kwl_manual_override_level`
+	- `number.smart_kwl_manual_override_duration`
+	- `button.smart_kwl_apply_manual_override`
+	- `binary_sensor.smart_kwl_manual_override_active`
+- Extended check-log attributes with `change_history` for reliable dashboard rendering of recent level transitions
+
+### Changed
+- Dashboard updated with a dedicated Manual Override section and status entities
+- Recent changes card now reads level transitions from `change_history` instead of short check-run parsing
+
 ## [0.1.13] - 2026-05-13
 ### Fixed
 - Removed problematic static path registration in `__init__.py` that caused setup failure
