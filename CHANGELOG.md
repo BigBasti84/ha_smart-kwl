@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.3] - 2026-05-13
+### Added
+- Added Smart KWL integration icon at assets/smart_kwl_icon.svg
+
 ## [0.1.2] - 2026-05-13
 ### Changed
 - Added explicit optional toggle for home/away mode in config flow
