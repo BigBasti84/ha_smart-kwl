@@ -1,0 +1,17 @@
+type: markdown
+title: Smart KWL - Last 10 Checks
+content: |
+  {% set entity = 'sensor.smart_kwl_check_log' %}
+  {% set history = state_attr(entity, 'check_history') or [] %}
+
+  {% if history | count == 0 %}
+  No checks available yet.
+  {% else %}
+  {% for run in history %}
+  ### Check {{ loop.index }}
+  {% for line in run %}
+  - {{ line }}
+  {% endfor %}
+
+  {% endfor %}
+  {% endif %}

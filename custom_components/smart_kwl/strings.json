@@ -1,0 +1,137 @@
+{
+  "title": "Smart KWL",
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "name": "Name",
+          "fan_entity": "Fan entity",
+          "humidity_sensors": "Humidity sensors",
+          "co2_sensors": "CO2 sensors",
+          "min_fan_level": "Minimum fan level",
+          "max_fan_level": "Maximum fan level",
+          "default_fan_level": "Default fan level",
+          "away_sensor": "Away binary sensor",
+          "away_fan_level": "Away fan level",
+          "night_enabled": "Enable night mode",
+          "night_start": "Night start",
+          "night_end": "Night end",
+          "night_max_fan_level": "Night max fan level",
+          "night_summer_fan_level": "Night summer fan level",
+          "summer_mode_sensor": "Summer mode binary sensor",
+          "check_interval": "Control check interval (seconds)",
+          "incoming_temperature_entity": "Incoming temperature sensor",
+          "outgoing_temperature_entity": "Outgoing temperature sensor",
+          "outside_temperature_entity": "Outside temperature sensor",
+          "exhaust_temperature_entity": "Exhaust temperature sensor"
+        }
+      },
+      "init": {
+        "data": {
+          "name": "Name",
+          "fan_entity": "Fan entity",
+          "humidity_sensors": "Humidity sensors",
+          "co2_sensors": "CO2 sensors",
+          "min_fan_level": "Minimum fan level",
+          "max_fan_level": "Maximum fan level",
+          "default_fan_level": "Default fan level",
+          "away_sensor": "Away binary sensor",
+          "away_fan_level": "Away fan level",
+          "night_enabled": "Enable night mode",
+          "night_start": "Night start",
+          "night_end": "Night end",
+          "night_max_fan_level": "Night max fan level",
+          "night_summer_fan_level": "Night summer fan level",
+          "summer_mode_sensor": "Summer mode binary sensor",
+          "check_interval": "Control check interval (seconds)",
+          "incoming_temperature_entity": "Incoming temperature sensor",
+          "outgoing_temperature_entity": "Outgoing temperature sensor",
+          "outside_temperature_entity": "Outside temperature sensor",
+          "exhaust_temperature_entity": "Exhaust temperature sensor"
+        }
+      },
+      "humidity_threshold": {
+        "title": "Humidity Threshold",
+        "description": "Set min and max values for humidity sensor: {entity_id}",
+        "data": {
+          "entity_id": "Sensor entity",
+          "min": "Minimum value",
+          "max": "Maximum value"
+        }
+      },
+      "co2_threshold": {
+        "title": "CO2 Threshold",
+        "description": "Set min and max values for CO2 sensor: {entity_id}",
+        "data": {
+          "entity_id": "Sensor entity",
+          "min": "Minimum value",
+          "max": "Maximum value"
+        }
+      }
+    },
+    "error": {
+      "fan_level_range": "Minimum fan level must be lower than or equal to maximum fan level.",
+      "default_level_range": "Default fan level must be within min and max fan levels.",
+      "away_level_range": "Away fan level must be within min and max fan levels.",
+      "night_max_range": "Night max fan level must be within min and max fan levels.",
+      "night_summer_range": "Night summer fan level must be within min and max fan levels.",
+      "sensor_range": "Sensor minimum must be lower than sensor maximum.",
+      "no_control_sensors": "At least one humidity or CO2 sensor is required."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "name": "Name",
+          "fan_entity": "Fan entity",
+          "humidity_sensors": "Humidity sensors",
+          "co2_sensors": "CO2 sensors",
+          "min_fan_level": "Minimum fan level",
+          "max_fan_level": "Maximum fan level",
+          "default_fan_level": "Default fan level",
+          "away_sensor": "Away binary sensor",
+          "away_fan_level": "Away fan level",
+          "night_enabled": "Enable night mode",
+          "night_start": "Night start",
+          "night_end": "Night end",
+          "night_max_fan_level": "Night max fan level",
+          "night_summer_fan_level": "Night summer fan level",
+          "summer_mode_sensor": "Summer mode binary sensor",
+          "check_interval": "Control check interval (seconds)",
+          "incoming_temperature_entity": "Incoming temperature sensor",
+          "outgoing_temperature_entity": "Outgoing temperature sensor",
+          "outside_temperature_entity": "Outside temperature sensor",
+          "exhaust_temperature_entity": "Exhaust temperature sensor"
+        }
+      },
+      "humidity_threshold": {
+        "title": "Humidity Threshold",
+        "description": "Set min and max values for humidity sensor: {entity_id}",
+        "data": {
+          "entity_id": "Sensor entity",
+          "min": "Minimum value",
+          "max": "Maximum value"
+        }
+      },
+      "co2_threshold": {
+        "title": "CO2 Threshold",
+        "description": "Set min and max values for CO2 sensor: {entity_id}",
+        "data": {
+          "entity_id": "Sensor entity",
+          "min": "Minimum value",
+          "max": "Maximum value"
+        }
+      }
+    },
+    "error": {
+      "fan_level_range": "Minimum fan level must be lower than or equal to maximum fan level.",
+      "default_level_range": "Default fan level must be within min and max fan levels.",
+      "away_level_range": "Away fan level must be within min and max fan levels.",
+      "night_max_range": "Night max fan level must be within min and max fan levels.",
+      "night_summer_range": "Night summer fan level must be within min and max fan levels.",
+      "sensor_range": "Sensor minimum must be lower than sensor maximum.",
+      "no_control_sensors": "At least one humidity or CO2 sensor is required."
+    }
+  }
+}
