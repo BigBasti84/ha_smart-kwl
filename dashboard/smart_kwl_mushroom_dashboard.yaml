@@ -170,7 +170,19 @@ views:
           {% set counts.shown = counts.shown + 1 %}
           {% set ts = run[0].split('at=')[-1] if run | count > 0 else '' %}
           {% set ts_fmt = ts[:10].split('-') | reverse | join('-') ~ ' -' ~ ts[11:16] if ts | length >= 16 else ts %}
-          {% set reason = action.split('reason=')[-1].split(' |')[0] if 'reason=' in action else 'unknown' %}
+          {% set reason_raw = action.split('reason=')[-1].split(' |')[0] if 'reason=' in action else 'unknown' %}
+          {% set reason_map = {
+            'idle_base_default': 'Idle – normal mode',
+            'idle_base_away': 'Idle – away mode',
+            'humidity_base_default': 'High humidity',
+            'humidity_base_away': 'High humidity – away mode',
+            'co2_base_default': 'High CO2',
+            'co2_base_away': 'High CO2 – away mode',
+            'night': 'Night mode',
+            'night_summer': 'Night mode (summer)',
+            'manual': 'Manual override'
+          } %}
+          {% set reason = reason_map[reason_raw] if reason_raw in reason_map else reason_raw %}
           {% set level = action.split('after_level=')[-1].split(' ')[0] if 'after_level=' in action else 'n/a' %}
           - {{ ts_fmt }}: Fan → {{ level }} ({{ reason }})
           {% endif %}
