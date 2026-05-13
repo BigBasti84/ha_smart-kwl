@@ -1,145 +1,215 @@
-title: Smart KWL Dashboard
-path: smart-kwl
-icon: mdi:fan-auto
-cards:
-  - type: custom:mushroom-title-card
-    title: Smart KWL
-    subtitle: Auto-adaptive dashboard (entity IDs discovered automatically)
-
-  - type: custom:mushroom-chips-card
-    chips:
-      - type: template
-        icon: mdi:fan
-        content: >-
-          {% set e = states.binary_sensor | map(attribute='entity_id') | select('search', '_ventilation_on$') | list | first %}
-          Ventilation: {{ 'On' if e and is_state(e, 'on') else 'Off' }}
-        icon_color: >-
-          {% set e = states.binary_sensor | map(attribute='entity_id') | select('search', '_ventilation_on$') | list | first %}
-          {{ 'green' if e and is_state(e, 'on') else 'grey' }}
-      - type: template
-        icon: mdi:white-balance-sunny
-        content: >-
-          {% set e = states.binary_sensor | map(attribute='entity_id') | select('search', '_summer_mode_active$') | list | first %}
-          Summer: {{ 'On' if e and is_state(e, 'on') else 'Off' }}
-        icon_color: >-
-          {% set e = states.binary_sensor | map(attribute='entity_id') | select('search', '_summer_mode_active$') | list | first %}
-          {{ 'amber' if e and is_state(e, 'on') else 'grey' }}
-      - type: template
-        icon: mdi:weather-night
-        content: >-
-          {% set e = states.binary_sensor | map(attribute='entity_id') | select('search', '_night_mode_active$') | list | first %}
-          Night: {{ 'On' if e and is_state(e, 'on') else 'Off' }}
-        icon_color: >-
-          {% set e = states.binary_sensor | map(attribute='entity_id') | select('search', '_night_mode_active$') | list | first %}
-          {{ 'deep-purple' if e and is_state(e, 'on') else 'grey' }}
-
-  - type: horizontal-stack
+title: Home
+views:
+  - title: Smart KWL Dashboard
+    path: smart-kwl
+    icon: mdi:fan-auto
     cards:
+      - type: custom:mushroom-title-card
+        title: Smart KWL
+        subtitle: Stable dashboard with runtime diagnostics
+
+      - type: custom:mushroom-chips-card
+        chips:
+          - type: template
+            icon: mdi:fan
+            content: >-
+              {% set ns = namespace(e='') %}
+              {% for b in states.binary_sensor %}
+                {% if b.entity_id.endswith('_ventilation_on') %}
+                  {% set ns.e = b.entity_id %}
+                {% endif %}
+              {% endfor %}
+              Ventilation: {{ 'On' if ns.e and is_state(ns.e, 'on') else 'Off' }}
+            icon_color: >-
+              {% set ns = namespace(e='') %}
+              {% for b in states.binary_sensor %}
+                {% if b.entity_id.endswith('_ventilation_on') %}
+                  {% set ns.e = b.entity_id %}
+                {% endif %}
+              {% endfor %}
+              {{ 'green' if ns.e and is_state(ns.e, 'on') else 'grey' }}
+
+          - type: template
+            icon: mdi:white-balance-sunny
+            content: >-
+              {% set ns = namespace(e='') %}
+              {% for b in states.binary_sensor %}
+                {% if b.entity_id.endswith('_summer_mode_active') %}
+                  {% set ns.e = b.entity_id %}
+                {% endif %}
+              {% endfor %}
+              Summer: {{ 'On' if ns.e and is_state(ns.e, 'on') else 'Off' }}
+            icon_color: >-
+              {% set ns = namespace(e='') %}
+              {% for b in states.binary_sensor %}
+                {% if b.entity_id.endswith('_summer_mode_active') %}
+                  {% set ns.e = b.entity_id %}
+                {% endif %}
+              {% endfor %}
+              {{ 'amber' if ns.e and is_state(ns.e, 'on') else 'grey' }}
+
+          - type: template
+            icon: mdi:weather-night
+            content: >-
+              {% set ns = namespace(e='') %}
+              {% for b in states.binary_sensor %}
+                {% if b.entity_id.endswith('_night_mode_active') %}
+                  {% set ns.e = b.entity_id %}
+                {% endif %}
+              {% endfor %}
+              Night: {{ 'On' if ns.e and is_state(ns.e, 'on') else 'Off' }}
+            icon_color: >-
+              {% set ns = namespace(e='') %}
+              {% for b in states.binary_sensor %}
+                {% if b.entity_id.endswith('_night_mode_active') %}
+                  {% set ns.e = b.entity_id %}
+                {% endif %}
+              {% endfor %}
+              {{ 'deep-purple' if ns.e and is_state(ns.e, 'on') else 'grey' }}
+
+      - type: horizontal-stack
+        cards:
+          - type: custom:mushroom-template-card
+            icon: mdi:fan-chevron-up
+            primary: Current Fan Speed
+            secondary: >-
+              {% set ns = namespace(level='', pct='') %}
+              {% for s in states.sensor %}
+                {% if s.entity_id.endswith('_target_fan_level') %}
+                  {% set ns.level = s.entity_id %}
+                {% endif %}
+                {% if s.entity_id.endswith('_target_fan_percentage') %}
+                  {% set ns.pct = s.entity_id %}
+                {% endif %}
+              {% endfor %}
+              {% if ns.level %}
+              {{ states(ns.level) }} / 8{% if ns.pct %} ({{ states(ns.pct) }}%){% endif %}
+              {% else %}
+              No fan level sensor found
+              {% endif %}
+
+          - type: custom:mushroom-template-card
+            icon: mdi:molecule-co2
+            primary: >-
+              {% set ns = namespace(c='') %}
+              {% for s in states.sensor %}
+                {% if s.entity_id.endswith('_co2_combined') %}
+                  {% set ns.c = s.entity_id %}
+                {% endif %}
+              {% endfor %}
+              CO2: {{ states(ns.c) if ns.c else 'n/a' }} ppm
+            secondary: >-
+              {% set ns = namespace(lo='', hi='') %}
+              {% for s in states.sensor %}
+                {% if s.entity_id.endswith('_co2_low') %}
+                  {% set ns.lo = s.entity_id %}
+                {% endif %}
+                {% if s.entity_id.endswith('_co2_high') %}
+                  {% set ns.hi = s.entity_id %}
+                {% endif %}
+              {% endfor %}
+              Low {{ states(ns.lo) if ns.lo else 'n/a' }} / High {{ states(ns.hi) if ns.hi else 'n/a' }} ppm
+
       - type: custom:mushroom-template-card
-        icon: mdi:fan-chevron-up
-        primary: Current Fan Speed
-        secondary: >-
-          {% set level = states.sensor | map(attribute='entity_id') | select('search', '_target_fan_level$') | list | first %}
-          {% set pct = states.sensor | map(attribute='entity_id') | select('search', '_target_fan_percentage$') | list | first %}
-          {% if level %}
-          {{ states(level) }} / 8
-          {% if pct %}
-          ({{ states(pct) }}%)
-          {% endif %}
-          {% else %}
-          No fan level sensor found
-          {% endif %}
-      - type: custom:mushroom-template-card
-        icon: mdi:molecule-co2
+        icon: mdi:water-percent
         primary: >-
-          {% set c = states.sensor | map(attribute='entity_id') | select('search', '_co2_combined$') | list | first %}
-          CO2: {{ states(c) if c else 'n/a' }} ppm
+          {% set ns = namespace(h='') %}
+          {% for s in states.sensor %}
+            {% if s.entity_id.endswith('_humidity_combined') %}
+              {% set ns.h = s.entity_id %}
+            {% endif %}
+          {% endfor %}
+          Humidity: {{ states(ns.h) if ns.h else 'n/a' }} %
         secondary: >-
-          {% set lo = states.sensor | map(attribute='entity_id') | select('search', '_co2_low$') | list | first %}
-          {% set hi = states.sensor | map(attribute='entity_id') | select('search', '_co2_high$') | list | first %}
-          Low {{ states(lo) if lo else 'n/a' }} / High {{ states(hi) if hi else 'n/a' }} ppm
+          {% set ns = namespace(lo='', hi='') %}
+          {% for s in states.sensor %}
+            {% if s.entity_id.endswith('_humidity_low') %}
+              {% set ns.lo = s.entity_id %}
+            {% endif %}
+            {% if s.entity_id.endswith('_humidity_high') %}
+              {% set ns.hi = s.entity_id %}
+            {% endif %}
+          {% endfor %}
+          Low {{ states(ns.lo) if ns.lo else 'n/a' }} / High {{ states(ns.hi) if ns.hi else 'n/a' }} %
 
-  - type: custom:mushroom-template-card
-    icon: mdi:water-percent
-    primary: >-
-      {% set h = states.sensor | map(attribute='entity_id') | select('search', '_humidity_combined$') | list | first %}
-      Humidity: {{ states(h) if h else 'n/a' }} %
-    secondary: >-
-      {% set lo = states.sensor | map(attribute='entity_id') | select('search', '_humidity_low$') | list | first %}
-      {% set hi = states.sensor | map(attribute='entity_id') | select('search', '_humidity_high$') | list | first %}
-      Low {{ states(lo) if lo else 'n/a' }} / High {{ states(hi) if hi else 'n/a' }} %
+      - type: history-graph
+        title: Current Fan Speed (24h)
+        hours_to_show: 24
+        refresh_interval: 60
+        entities:
+          - entity: sensor.smart_kwl_target_fan_level
+            name: Fan Level
 
-  - type: custom:auto-entities
-    card:
-      type: history-graph
-      title: Current Fan Speed (24h)
-      hours_to_show: 24
-      refresh_interval: 60
-    filter:
-      include:
-        - domain: sensor
-          entity_id: '*_target_fan_level'
-      exclude: []
-    show_empty: true
+      - type: markdown
+        title: Compact Log (Last 5 Changes)
+        content: |
+          {% set preferred = 'sensor.smart_kwl_check_log' %}
+          {% set ns = namespace(entity='', candidates=[]) %}
 
-  - type: markdown
-    title: Compact Log (Last 5 Changes)
-    content: |
-      {% set preferred = 'sensor.smart_kwl_check_log' %}
-      {% set ns = namespace(entity=None, candidates=[]) %}
-
-      {% if state_attr(preferred, 'check_history') is not none %}
-        {% set ns.entity = preferred %}
-      {% else %}
-        {% for s in states.sensor %}
-          {% if state_attr(s.entity_id, 'check_history') is not none %}
-            {% set ns.candidates = ns.candidates + [s.entity_id] %}
+          {% if state_attr(preferred, 'check_history') is not none %}
+            {% set ns.entity = preferred %}
+          {% else %}
+            {% for s in states.sensor %}
+              {% if state_attr(s.entity_id, 'check_history') is not none %}
+                {% set ns.candidates = ns.candidates + [s.entity_id] %}
+              {% endif %}
+            {% endfor %}
+            {% if ns.candidates | count > 0 %}
+              {% set ns.entity = ns.candidates[0] %}
+            {% endif %}
           {% endif %}
-        {% endfor %}
-        {% if ns.candidates | count > 0 %}
-          {% set ns.entity = ns.candidates[0] %}
-        {% endif %}
-      {% endif %}
 
-      {% if not ns.entity %}
-      No check log sensor found (attribute `check_history`).
-      {% else %}
-      {% set history = state_attr(ns.entity, 'check_history') or [] %}
-      {% if history | count == 0 %}
-      No changes available yet.
-      {% else %}
-      {% for run in history[:5] %}
-      {% set ts = run[0].split('at=')[-1] if run | count > 0 else 'n/a' %}
-      {% set action = (run | select('search', '^action \|') | list | first) %}
-      {% if action %}
-      {% set reason = action.split('reason=')[-1].split(' |')[0] if 'reason=' in action else 'unknown' %}
-      {% set level = action.split('after_level=')[-1].split(' ')[0] if 'after_level=' in action else 'n/a' %}
-      - {{ ts }}: Set Fan Speed to {{ level }} because of {{ reason }}
-      {% endif %}
-      {% endfor %}
-      {% endif %}
-      {% endif %}
+          {% if not ns.entity %}
+          No check log sensor found.
+          {% else %}
+          {% set history = state_attr(ns.entity, 'check_history') or [] %}
+          {% if history | count == 0 %}
+          No changes available yet.
+          {% else %}
+          {% for run in history[:5] %}
+          {% set ts = run[0].split('at=')[-1] if run | count > 0 else 'n/a' %}
+          {% set action = (run | select('search', '^action \|') | list | first) %}
+          {% if action %}
+          {% set reason = action.split('reason=')[-1].split(' |')[0] if 'reason=' in action else 'unknown' %}
+          {% set level = action.split('after_level=')[-1].split(' ')[0] if 'after_level=' in action else 'n/a' %}
+          - {{ ts }}: Set Fan Speed to {{ level }} because of {{ reason }}
+          {% endif %}
+          {% endfor %}
+          {% endif %}
+          {% endif %}
 
-  - type: custom:auto-entities
-    card:
-      type: history-graph
-      title: Incoming / Outgoing Temperatures (24h)
-      hours_to_show: 24
-      refresh_interval: 60
-    filter:
-      include:
-        - domain: sensor
-          entity_id: '*_incoming_temperature'
-        - domain: sensor
-          entity_id: '*_outgoing_temperature'
-      exclude: []
-    show_empty: true
+      - type: history-graph
+        title: Incoming / Outgoing Temperatures (24h)
+        hours_to_show: 24
+        refresh_interval: 60
+        entities:
+          - entity: sensor.smart_kwl_incoming_temperature
+            name: Incoming
+          - entity: sensor.smart_kwl_outgoing_temperature
+            name: Outgoing
 
-  - type: markdown
-    title: Notes
-    content: |
-      This dashboard uses:
-      - `Mushroom` cards
-      - `auto-entities` for dynamic graph entity discovery
+      - type: markdown
+        title: Diagnostics
+        content: |
+          Detected Smart KWL entities in this HA instance:
 
-      If graphs are empty, install the `auto-entities` Lovelace card from HACS (Frontend).
+          {% for s in states.sensor %}
+          {% if '_target_fan_level' in s.entity_id
+             or '_target_fan_percentage' in s.entity_id
+             or '_co2_combined' in s.entity_id
+             or '_co2_low' in s.entity_id
+             or '_co2_high' in s.entity_id
+             or '_humidity_combined' in s.entity_id
+             or '_humidity_low' in s.entity_id
+             or '_humidity_high' in s.entity_id
+             or '_incoming_temperature' in s.entity_id
+             or '_outgoing_temperature' in s.entity_id %}
+          - {{ s.entity_id }} = {{ states(s.entity_id) }}
+          {% endif %}
+          {% endfor %}
+
+          {% for b in states.binary_sensor %}
+          {% if '_ventilation_on' in b.entity_id or '_summer_mode_active' in b.entity_id or '_night_mode_active' in b.entity_id %}
+          - {{ b.entity_id }} = {{ states(b.entity_id) }}
+          {% endif %}
+          {% endfor %}
