@@ -19,10 +19,8 @@ views:
       - type: entities
         title: Manual Override
         entities:
-          - number.smart_kwl_manual_override_level
-          - number.smart_kwl_manual_override_duration
           - button.smart_kwl_apply_manual_override
-          - sensor.smart_kwl_manual_override_level_status
+          - button.smart_kwl_cancel_manual_override
           - sensor.smart_kwl_manual_override_until
           - sensor.smart_kwl_external_manual_hold
 
@@ -63,10 +61,12 @@ views:
           - sensor.exhaust_temperature
 
       - type: history-graph
-        title: Fan Speed History (24h)
+        title: Fan, Humidity, CO2 History (24h)
         hours_to_show: 24
         entities:
           - sensor.target_fan_level
+          - sensor.humidity_combined
+          - sensor.co2_combined
 
       - type: heading
         heading: Filter Maintenance

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.15] - 2026-05-13
+### Changed
+- Removed `number` entity controls (level and duration steppers) from dashboard Manual Override card
+- Added Cancel Manual Override button to dashboard
+- Added combined Fan/Humidity/CO2 history graph to dashboard
+
 ## [0.1.14] - 2026-05-13
 ### Added
 - External manual fan change handling:
