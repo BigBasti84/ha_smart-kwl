@@ -1,12 +1,24 @@
 type: markdown
 title: Smart KWL - Last 10 Checks
 content: |
-  {% set entity = 'sensor.smart_kwl_check_log' %}
+  {% set preferred = 'sensor.smart_kwl_check_log' %}
+  {% set candidates = states.sensor
+      | map(attribute='entity_id')
+      | select('search', 'smart_kwl')
+      | select('search', 'check_log')
+      | list %}
+  {% set entity = preferred if states(preferred) != 'unknown' or state_attr(preferred, 'check_history') is not none else (candidates[0] if candidates | count > 0 else none) %}
+
+  {% if not entity %}
+  No Smart KWL check log sensor found. Open Developer Tools -> States and look for an entity that ends with `_check_log`, then set it manually in this card.
+  {% else %}
   {% set history = state_attr(entity, 'check_history') or [] %}
 
   {% if history | count == 0 %}
-  No checks available yet.
+  No checks available yet for {{ entity }}.
   {% else %}
+  Showing data from **{{ entity }}**
+
   {% for run in history %}
   ### Check {{ loop.index }}
   {% for line in run %}
@@ -14,4 +26,5 @@ content: |
   {% endfor %}
 
   {% endfor %}
+  {% endif %}
   {% endif %}
