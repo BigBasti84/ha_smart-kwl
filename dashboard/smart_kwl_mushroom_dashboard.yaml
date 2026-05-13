@@ -1,181 +1,100 @@
-title: Home
+title: Smart KWL
 views:
-  - title: Smart KWL Dashboard
+  - title: Overview
     path: smart-kwl
     icon: mdi:fan-auto
+    badges: []
     cards:
-      - type: custom:mushroom-title-card
-        title: Smart KWL
-        subtitle: Ventilation control
+      - type: heading
+        heading: Smart KWL Ventilation
 
-      - type: custom:mushroom-chips-card
-        chips:
-          - type: template
-            icon: mdi:fan
-            content: "Ventilation: {{ 'On' if is_state('binary_sensor.smart_kwl_ventilation_on', 'on') else 'Off' }}"
-            icon_color: "{{ 'green' if is_state('binary_sensor.smart_kwl_ventilation_on', 'on') else 'grey' }}"
-          - type: template
-            icon: mdi:white-balance-sunny
-            content: "Summer: {{ 'On' if is_state('binary_sensor.smart_kwl_summer_mode_active', 'on') else 'Off' }}"
-            icon_color: "{{ 'amber' if is_state('binary_sensor.smart_kwl_summer_mode_active', 'on') else 'grey' }}"
-          - type: template
-            icon: mdi:weather-night
-            content: "Night: {{ 'On' if is_state('binary_sensor.smart_kwl_night_mode_active', 'on') else 'Off' }}"
-            icon_color: "{{ 'deep-purple' if is_state('binary_sensor.smart_kwl_night_mode_active', 'on') else 'grey' }}"
+      - type: entities
+        title: Status
+        entities:
+          - binary_sensor.smart_kwl_ventilation_on
+          - binary_sensor.smart_kwl_summer_mode_active
+          - binary_sensor.smart_kwl_night_mode_active
 
-      - type: horizontal-stack
-        cards:
-          - type: custom:mushroom-template-card
-            icon: mdi:fan-chevron-up
-            primary: Fan Speed
-            secondary: >-
-              {{ states('sensor.smart_kwl_target_fan_level') }} / 8
-              ({{ states('sensor.smart_kwl_target_fan_percentage') }}%)
-          - type: custom:mushroom-template-card
-            icon: mdi:molecule-co2
-            primary: CO2
-            secondary: >-
-              {{ states('sensor.smart_kwl_co2_combined') }} ppm
-              (low {{ states('sensor.smart_kwl_co2_low') }} /
-              high {{ states('sensor.smart_kwl_co2_high') }})
-          - type: custom:mushroom-template-card
-            icon: mdi:water-percent
-            primary: Humidity
-            secondary: >-
-              {{ states('sensor.smart_kwl_humidity_combined') }} %
-              (low {{ states('sensor.smart_kwl_humidity_low') }} /
-              high {{ states('sensor.smart_kwl_humidity_high') }})
+      - type: entities
+        title: Current Values
+        entities:
+          - sensor.smart_kwl_target_fan_level
+          - sensor.smart_kwl_target_fan_percentage
+          - sensor.smart_kwl_humidity_combined
+          - sensor.smart_kwl_co2_combined
 
-      - type: markdown
-        title: Air Flow & Temperatures
-        content: |
-          **① Aussenluft** (Fresh air outside) → **Wärmetauscher** → **② Zuluft** (Supply to rooms)
-          - Fresh air: {{ states('sensor.smart_kwl_incoming_temperature') }} °C
-          - Supply air: {{ states('sensor.smart_kwl_outgoing_temperature') }} °C
+      - type: entities
+        title: Thresholds
+        entities:
+          - sensor.smart_kwl_humidity_low
+          - sensor.smart_kwl_humidity_high
+          - sensor.smart_kwl_co2_low
+          - sensor.smart_kwl_co2_high
 
-          **③ Abluft** (Exhaust from rooms) → **Wärmetauscher** → **④ Fortluft** (Expelled air)
-          - Exhaust air: {{ states('sensor.smart_kwl_exhaust_temperature') }} °C
-          - Outside air: {{ states('sensor.smart_kwl_outside_temperature') }} °C
+      - type: heading
+        heading: Temperatures
 
-      - type: custom:mushroom-title-card
-        title: Filter Status
-
-      - type: horizontal-stack
-        cards:
-          - type: custom:mushroom-template-card
-            icon: mdi:air-filter
-            primary: Cleaning Status
-            secondary: >-
-              {% set s = states('sensor.smart_kwl_filter_cleaning_status') %}
-              {% if s == 'ok' %}Clean
-              {% elif s == 'due_soon' %}Due soon
-              {% elif s == 'overdue' %}Overdue!
-              {% else %}Unknown{% endif %}
-            icon_color: >-
-              {% set s = states('sensor.smart_kwl_filter_cleaning_status') %}
-              {% if s == 'overdue' %}red{% elif s == 'due_soon' %}amber{% else %}green{% endif %}
-          - type: custom:mushroom-template-card
-            icon: mdi:calendar-clock
-            primary: Days Since Cleaning
-            secondary: >-
-              {% set d = states('sensor.smart_kwl_filter_days_since_cleaning') %}
-              {% if d not in ('unknown','unavailable','None','none') %}
-              {{ d }} days
-              {% else %}Never cleaned{% endif %}
-            icon_color: >-
-              {% set d = states('sensor.smart_kwl_filter_days_since_cleaning') | int(0) %}
-              {% if d >= 60 %}red{% elif d >= 30 %}amber{% else %}green{% endif %}
-          - type: custom:mushroom-template-card
-            icon: mdi:calendar-remove
-            primary: Remaining Lifetime
-            secondary: >-
-              {% set d = states('sensor.smart_kwl_filter_days_remaining') | int(-1) %}
-              {% if d >= 0 %}{{ d }} days{% else %}Unknown{% endif %}
-            icon_color: >-
-              {% set d = states('sensor.smart_kwl_filter_days_remaining') | int(9999) %}
-              {% if d <= 30 %}red{% elif d <= 90 %}amber{% else %}green{% endif %}
-
-      - type: markdown
-        content: >-
-          **Last cleaned:**
-          {% set lc = states('sensor.smart_kwl_filter_last_cleaned') %}
-          {% if lc not in ('unknown','unavailable','None','none') %}
-          {{ lc[:10] }}
-          {% else %}
-          Never recorded
-          {% endif %}
-          &nbsp;&nbsp;|&nbsp;&nbsp;
-          **Installed:**
-          {% set id = states('sensor.smart_kwl_filter_install_date') %}
-          {% if id not in ('unknown','unavailable','None','none') %}
-          {{ id[:10] }}
-          {% else %}
-          Unknown
-          {% endif %}
-
-      - type: button
-        name: Filters Cleaned
-        icon: mdi:check-circle-outline
-        tap_action:
-          action: call-service
-          service: button.press
-          target:
-            entity_id: button.smart_kwl_filters_cleaned
+      - type: entities
+        title: Temperature Sensors
+        entities:
+          - sensor.smart_kwl_incoming_temperature
+          - sensor.smart_kwl_outgoing_temperature
+          - sensor.smart_kwl_outside_temperature
+          - sensor.smart_kwl_exhaust_temperature
 
       - type: history-graph
-        title: Fan Speed (24h)
+        title: Temperature History (24h)
         hours_to_show: 24
-        refresh_interval: 60
         entities:
-          - entity: sensor.smart_kwl_target_fan_level
-            name: Fan Level
+          - sensor.smart_kwl_incoming_temperature
+          - sensor.smart_kwl_outgoing_temperature
+          - sensor.smart_kwl_outside_temperature
+          - sensor.smart_kwl_exhaust_temperature
+
+      - type: history-graph
+        title: Fan Speed History (24h)
+        hours_to_show: 24
+        entities:
+          - sensor.smart_kwl_target_fan_level
+
+      - type: heading
+        heading: Filter Maintenance
+
+      - type: entities
+        title: Filter Status
+        entities:
+          - sensor.smart_kwl_filter_cleaning_status
+          - sensor.smart_kwl_filter_days_since_cleaning
+          - sensor.smart_kwl_filter_days_remaining
+          - sensor.smart_kwl_filter_last_cleaned
+          - sensor.smart_kwl_filter_install_date
+          - button.smart_kwl_filters_cleaned
+
+      - type: heading
+        heading: Check Log
+
+      - type: entities
+        title: Last Check
+        entities:
+          - sensor.smart_kwl_check_log
 
       - type: markdown
-        title: Compact Log (Last 5 Changes)
+        title: Recent Changes (Last 5)
         content: |
           {% set history = state_attr('sensor.smart_kwl_check_log', 'check_history') or [] %}
           {% set counts = namespace(shown=0) %}
           {% if history | count == 0 %}
-          No changes available yet.
+          No changes recorded yet.
           {% else %}
           {% for run in history %}
           {% set action = (run | select('search', '^action \|') | list | first) %}
           {% if action and 'status=applied' in action and counts.shown < 5 %}
           {% set counts.shown = counts.shown + 1 %}
           {% set ts = run[0].split('at=')[-1] if run | count > 0 else '' %}
-          {% set ts_fmt = ts[:10].split('-') | reverse | join('-') ~ ' -' ~ ts[11:16] if ts | length >= 16 else ts %}
+          {% set ts_fmt = ts[:10].split('-') | reverse | join('-') ~ ' ' ~ ts[11:16] if ts | length >= 16 else ts %}
           {% set reason_raw = action.split('reason=')[-1].split(' |')[0] if 'reason=' in action else 'unknown' %}
-          {% set reason_map = {
-            'idle_base_default': 'Idle – normal mode',
-            'idle_base_away': 'Idle – away mode',
-            'humidity_base_default': 'High humidity',
-            'humidity_base_away': 'High humidity – away mode',
-            'co2_base_default': 'High CO2',
-            'co2_base_away': 'High CO2 – away mode',
-            'night': 'Night mode',
-            'night_summer': 'Night mode (summer)',
-            'manual': 'Manual override'
-          } %}
-          {% set reason = reason_map[reason_raw] if reason_raw in reason_map else reason_raw %}
           {% set level = action.split('after_level=')[-1].split(' ')[0] if 'after_level=' in action else 'n/a' %}
-          - {{ ts_fmt }}: Fan → {{ level }} ({{ reason }})
+          **{{ ts_fmt }}** — Fan → **{{ level }}** ({{ reason_raw }})
           {% endif %}
           {% endfor %}
-          {% if counts.shown == 0 %}
-          No fan speed changes recorded yet.
           {% endif %}
-          {% endif %}
-
-      - type: history-graph
-        title: Temperatures (24h)
-        hours_to_show: 24
-        refresh_interval: 60
-        entities:
-          - entity: sensor.smart_kwl_incoming_temperature
-            name: Fresh (Aussenluft)
-          - entity: sensor.smart_kwl_outgoing_temperature
-            name: Supply (Zuluft)
-          - entity: sensor.smart_kwl_outside_temperature
-            name: Outside (Fortluft)
-          - entity: sensor.smart_kwl_exhaust_temperature
-            name: Exhaust (Abluft)
