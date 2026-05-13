@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.4] - 2026-05-13
+### Fixed
+- Dashboard card now auto-detects Smart KWL check log sensor entity ID instead of relying on a single hardcoded ID
+
 ## [0.1.3] - 2026-05-13
 ### Added
 - Added Smart KWL integration icon at assets/smart_kwl_icon.svg
