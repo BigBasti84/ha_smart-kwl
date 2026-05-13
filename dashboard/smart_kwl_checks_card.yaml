@@ -8,7 +8,7 @@ content: |
     {% set ns.entity = preferred %}
   {% else %}
     {% for s in states.sensor %}
-      {% if 'smart_kwl' in s.entity_id and 'check_log' in s.entity_id %}
+      {% if state_attr(s.entity_id, 'check_history') is not none %}
         {% set ns.candidates = ns.candidates + [s.entity_id] %}
       {% endif %}
     {% endfor %}
@@ -20,7 +20,7 @@ content: |
   {% if not ns.entity %}
   No Smart KWL check log sensor found.
 
-  Open Developer Tools -> States and look for an entity containing both `smart_kwl` and `check_log`.
+  Open Developer Tools -> States and search for entities that have attribute `check_history`.
 
   {% if ns.candidates | count > 0 %}
   Possible candidates found:
