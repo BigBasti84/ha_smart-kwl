@@ -52,3 +52,9 @@ DEFAULT_NIGHT_MAX_FAN_LEVEL = 5
 DEFAULT_NIGHT_SUMMER_FAN_LEVEL = 4
 
 DEFAULT_CHECK_INTERVAL = 60
+
+# Filter maintenance
+FILTER_CLEAN_INTERVAL_DAYS = 60   # warn after 1 month (30d), red after 2 months (60d)
+FILTER_WARN_DAYS = 30             # yellow threshold
+FILTER_LIFETIME_MONTHS = 24       # total filter lifetime in months
+FILTER_LIFETIME_WARN_DAYS = 30    # warn when this many days remain before end of life

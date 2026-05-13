@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.12] - 2026-05-13
+### Added
+- Filter maintenance tracking: days since last cleaning, remaining lifetime, cleaning status (ok/due_soon/overdue)
+- `button.smart_kwl_filters_cleaned` — press to record a filter cleaning event
+- Filter data persisted via HA storage (survives restarts)
+- Ventilation diagram card (`picture-elements`) with temperature overlays on all 4 air paths
+- Filter status shown as color-coded icon (green/amber/red) on the diagram
+- Full filter status dashboard card with last-cleaned date and install date
+- SVG diagram served automatically from integration `www/` folder at `/local/smart_kwl_diagram.svg`
+
 ## [0.1.11] - 2026-05-13
 ### Fixed
 - Ventilation On binary sensor now correctly shows On for climate entities (state is `heat`/`auto`, not `on`)

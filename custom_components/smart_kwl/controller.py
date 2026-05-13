@@ -34,7 +34,12 @@ from .const import (
     CONF_SENSOR_MAX,
     CONF_SENSOR_MIN,
     CONF_SUMMER_MODE_SENSOR,
+    FILTER_CLEAN_INTERVAL_DAYS,
+    FILTER_LIFETIME_MONTHS,
+    FILTER_LIFETIME_WARN_DAYS,
+    FILTER_WARN_DAYS,
 )
+from .filter_store import FilterStore
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -69,6 +74,7 @@ class SmartKwlController:
         self._listeners: list[Callable[[], None]] = []
         self._warned_unavailable: set[str] = set()
         self._warned_invalid: set[str] = set()
+        self._filter_store: FilterStore | None = None
         self._status: dict[str, Any] = {
             "last_reason": "init",
             "target_level": None,
@@ -87,10 +93,20 @@ class SmartKwlController:
             "last_action_line": "",
             "last_check_lines": [],
             "check_history": [],
+            "filter_last_cleaned": None,
+            "filter_install_date": None,
+            "filter_days_since_cleaning": None,
+            "filter_days_remaining_life": None,
+            "filter_cleaning_status": "unknown",
+            "filter_lifetime_status": "ok",
         }
 
     async def async_start(self) -> None:
         """Start tracking configured entities and periodic checks."""
+        self._filter_store = FilterStore(self.hass, self.entry.entry_id)
+        await self._filter_store.async_load()
+        self._update_filter_status()
+
         entities = [self._config(CONF_FAN_ENTITY)]
         entities.extend(self._sensor_entities(CONF_HUMIDITY_CONFIGS))
         entities.extend(self._sensor_entities(CONF_CO2_CONFIGS))
@@ -150,6 +166,67 @@ class SmartKwlController:
         """Return current effective fan level."""
         _, max_level = self.level_bounds()
         return self._percentage_to_level(self.current_percentage(), max_level)
+
+    async def async_mark_filters_cleaned(self) -> None:
+        """Record that filters have been cleaned right now."""
+        if self._filter_store is not None:
+            await self._filter_store.async_mark_cleaned()
+            self._update_filter_status()
+            self._notify_listeners()
+
+    def _update_filter_status(self) -> None:
+        """Recompute filter status from store data into _status dict."""
+        if self._filter_store is None:
+            return
+        now = datetime.now()
+        last_cleaned_str = self._filter_store.last_cleaned
+        install_date_str = self._filter_store.install_date
+
+        # Days since last cleaning
+        if last_cleaned_str:
+            days_since = (now - datetime.fromisoformat(last_cleaned_str)).days
+        else:
+            days_since = None
+
+        # Remaining lifetime days
+        if install_date_str:
+            lifetime_days = FILTER_LIFETIME_MONTHS * 30
+            elapsed = (now - datetime.fromisoformat(install_date_str)).days
+            days_remaining = max(0, lifetime_days - elapsed)
+        else:
+            days_remaining = None
+
+        # Cleaning status
+        if days_since is None:
+            cleaning_status = "unknown"
+        elif days_since >= FILTER_CLEAN_INTERVAL_DAYS:
+            cleaning_status = "overdue"
+        elif days_since >= FILTER_WARN_DAYS:
+            cleaning_status = "due_soon"
+        else:
+            cleaning_status = "ok"
+
+        # Lifetime status
+        if days_remaining is None:
+            lifetime_status = "unknown"
+        elif days_remaining <= FILTER_LIFETIME_WARN_DAYS:
+            lifetime_status = "replace_soon"
+        else:
+            lifetime_status = "ok"
+
+        self._status["filter_last_cleaned"] = last_cleaned_str
+        self._status["filter_install_date"] = install_date_str
+        self._status["filter_days_since_cleaning"] = days_since
+        self._status["filter_days_remaining_life"] = days_remaining
+        self._status["filter_cleaning_status"] = cleaning_status
+        self._status["filter_lifetime_status"] = lifetime_status
+
+    def _notify_listeners(self) -> None:
+        for listener in list(self._listeners):
+            try:
+                listener()
+            except Exception:  # noqa: BLE001
+                pass
 
     async def async_set_manual_level(self, level: int) -> bool:
         """Set fan to a specific level immediately and record diagnostics."""

@@ -55,6 +55,11 @@ async def async_setup_entry(
         SmartKwlDiagnosticSensor(controller, entry, "CO2 Low", "co2_low", "co2_low", "ppm"),
         SmartKwlDiagnosticSensor(controller, entry, "CO2 High", "co2_high", "co2_high", "ppm"),
         SmartKwlCheckLogSensor(controller, entry),
+        SmartKwlFilterSensor(controller, entry, "Filter Days Since Cleaning", "filter_days_since_cleaning", "filter_days_since_cleaning", "d"),
+        SmartKwlFilterSensor(controller, entry, "Filter Days Remaining", "filter_days_remaining", "filter_days_remaining_life", "d"),
+        SmartKwlFilterSensor(controller, entry, "Filter Cleaning Status", "filter_cleaning_status", "filter_cleaning_status"),
+        SmartKwlFilterSensor(controller, entry, "Filter Last Cleaned", "filter_last_cleaned", "filter_last_cleaned"),
+        SmartKwlFilterSensor(controller, entry, "Filter Install Date", "filter_install_date", "filter_install_date"),
     ]
 
     for cfg in TEMP_CONFIGS:
@@ -168,3 +173,25 @@ class SmartKwlTemperatureSensor(SmartKwlBaseEntity, SensorEntity):
             return None
         unit = state.attributes.get("unit_of_measurement")
         return str(unit) if unit is not None else None
+
+
+class SmartKwlFilterSensor(SmartKwlBaseEntity, SensorEntity):
+    """Expose filter maintenance data as sensors."""
+
+    def __init__(
+        self,
+        controller: SmartKwlController,
+        entry: ConfigEntry,
+        name: str,
+        unique_suffix: str,
+        status_key: str,
+        unit: str | None = None,
+    ) -> None:
+        super().__init__(controller, entry, name, unique_suffix)
+        self._status_key = status_key
+        if unit is not None:
+            self._attr_native_unit_of_measurement = unit
+
+    @property
+    def native_value(self) -> Any:
+        return self._controller.status.get(self._status_key)
