@@ -8,7 +8,6 @@ views:
         title: Smart KWL
         subtitle: Ventilation control
 
-      # ── Status chips ──────────────────────────────────────────────────────
       - type: custom:mushroom-chips-card
         chips:
           - type: template
@@ -24,7 +23,6 @@ views:
             content: "Night: {{ 'On' if is_state('binary_sensor.smart_kwl_night_mode_active', 'on') else 'Off' }}"
             icon_color: "{{ 'deep-purple' if is_state('binary_sensor.smart_kwl_night_mode_active', 'on') else 'grey' }}"
 
-      # ── Fan Speed + CO2 + Humidity ─────────────────────────────────────────
       - type: horizontal-stack
         cards:
           - type: custom:mushroom-template-card
@@ -48,103 +46,17 @@ views:
               (low {{ states('sensor.smart_kwl_humidity_low') }} /
               high {{ states('sensor.smart_kwl_humidity_high') }})
 
-      # ── Ventilation diagram with temperatures ──────────────────────────────
-      - type: picture-elements
-        image: /local/smart_kwl_diagram.svg
-        elements:
-          # ③ Abluft – top-left – exhaust from rooms
-          - type: state-label
-            entity: sensor.smart_kwl_exhaust_temperature
-            prefix: ""
-            suffix: " °C"
-            style:
-              top: 31%
-              left: 8%
-              font-size: 13px
-              font-weight: "700"
-              color: "#ff9500"
-              background: "rgba(0,0,0,0.5)"
-              padding: "2px 4px"
-              border-radius: "4px"
+      - type: markdown
+        title: Air Flow & Temperatures
+        content: |
+          **① Aussenluft** (Fresh air outside) → **Wärmetauscher** → **② Zuluft** (Supply to rooms)
+          - Fresh air: {{ states('sensor.smart_kwl_incoming_temperature') }} °C
+          - Supply air: {{ states('sensor.smart_kwl_outgoing_temperature') }} °C
 
-          # ① Aussenluft – top-right – fresh air from outside
-          - type: state-label
-            entity: sensor.smart_kwl_incoming_temperature
-            prefix: ""
-            suffix: " °C"
-            style:
-              top: 31%
-              left: 84%
-              font-size: 13px
-              font-weight: "700"
-              color: "#0a84ff"
-              background: "rgba(0,0,0,0.5)"
-              padding: "2px 4px"
-              border-radius: "4px"
+          **③ Abluft** (Exhaust from rooms) → **Wärmetauscher** → **④ Fortluft** (Expelled air)
+          - Exhaust air: {{ states('sensor.smart_kwl_exhaust_temperature') }} °C
+          - Outside air: {{ states('sensor.smart_kwl_outside_temperature') }} °C
 
-          # ② Zuluft – bottom-left – supply air to rooms
-          - type: state-label
-            entity: sensor.smart_kwl_outgoing_temperature
-            prefix: ""
-            suffix: " °C"
-            style:
-              top: 69%
-              left: 8%
-              font-size: 13px
-              font-weight: "700"
-              color: "#ff9500"
-              background: "rgba(0,0,0,0.5)"
-              padding: "2px 4px"
-              border-radius: "4px"
-
-          # ④ Fortluft – bottom-right – expelled air to outside
-          - type: state-label
-            entity: sensor.smart_kwl_outside_temperature
-            prefix: ""
-            suffix: " °C"
-            style:
-              top: 69%
-              left: 84%
-              font-size: 13px
-              font-weight: "700"
-              color: "#0a84ff"
-              background: "rgba(0,0,0,0.5)"
-              padding: "2px 4px"
-              border-radius: "4px"
-
-          # Filter left status indicator
-          - type: state-label
-            entity: sensor.smart_kwl_filter_cleaning_status
-            style:
-              top: 47%
-              left: 32%
-              font-size: 18px
-              background: "none"
-            tap_action:
-              action: none
-            # Use a template icon to show color — overlay an icon
-          - type: icon
-            icon: mdi:air-filter
-            style:
-              top: 47%
-              left: 32%
-              "--mdc-icon-size": "22px"
-              color: >-
-                {% set s = states('sensor.smart_kwl_filter_cleaning_status') %}
-                {% if s == 'overdue' %}#ff453a{% elif s == 'due_soon' %}#ffd60a{% else %}#30d158{% endif %}
-
-          # Filter right status indicator
-          - type: icon
-            icon: mdi:air-filter
-            style:
-              top: 47%
-              left: 67%
-              "--mdc-icon-size": "22px"
-              color: >-
-                {% set s = states('sensor.smart_kwl_filter_cleaning_status') %}
-                {% if s == 'overdue' %}#ff453a{% elif s == 'due_soon' %}#ffd60a{% else %}#30d158{% endif %}
-
-      # ── Filter Status Card ─────────────────────────────────────────────────
       - type: custom:mushroom-title-card
         title: Filter Status
 
@@ -162,7 +74,6 @@ views:
             icon_color: >-
               {% set s = states('sensor.smart_kwl_filter_cleaning_status') %}
               {% if s == 'overdue' %}red{% elif s == 'due_soon' %}amber{% else %}green{% endif %}
-
           - type: custom:mushroom-template-card
             icon: mdi:calendar-clock
             primary: Days Since Cleaning
@@ -174,7 +85,6 @@ views:
             icon_color: >-
               {% set d = states('sensor.smart_kwl_filter_days_since_cleaning') | int(0) %}
               {% if d >= 60 %}red{% elif d >= 30 %}amber{% else %}green{% endif %}
-
           - type: custom:mushroom-template-card
             icon: mdi:calendar-remove
             primary: Remaining Lifetime
@@ -212,7 +122,6 @@ views:
           target:
             entity_id: button.smart_kwl_filters_cleaned
 
-      # ── Fan Speed history ──────────────────────────────────────────────────
       - type: history-graph
         title: Fan Speed (24h)
         hours_to_show: 24
@@ -221,7 +130,6 @@ views:
           - entity: sensor.smart_kwl_target_fan_level
             name: Fan Level
 
-      # ── Compact change log ─────────────────────────────────────────────────
       - type: markdown
         title: Compact Log (Last 5 Changes)
         content: |
@@ -258,16 +166,15 @@ views:
           {% endif %}
           {% endif %}
 
-      # ── Temperature history ────────────────────────────────────────────────
       - type: history-graph
         title: Temperatures (24h)
         hours_to_show: 24
         refresh_interval: 60
         entities:
           - entity: sensor.smart_kwl_incoming_temperature
-            name: Incoming (Aussenluft)
+            name: Fresh (Aussenluft)
           - entity: sensor.smart_kwl_outgoing_temperature
-            name: Outgoing (Zuluft)
+            name: Supply (Zuluft)
           - entity: sensor.smart_kwl_outside_temperature
             name: Outside (Fortluft)
           - entity: sensor.smart_kwl_exhaust_temperature

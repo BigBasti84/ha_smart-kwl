@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
@@ -20,16 +18,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = controller
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
-
-    # Serve the ventilation diagram SVG from the integration's www/ folder
-    svg_path = Path(__file__).parent / "www" / "smart_kwl_diagram.svg"
-    if svg_path.exists():
-        hass.http.register_static_path(
-            "/local/smart_kwl_diagram.svg",
-            str(svg_path),
-            cache_headers=True,
-        )
-
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 

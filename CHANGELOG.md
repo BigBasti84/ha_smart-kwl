@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.13] - 2026-05-13
+### Fixed
+- Removed problematic static path registration in `__init__.py` that caused setup failure
+- Replaced picture-elements diagram card with markdown flow diagram (simpler, no image URL issues)
+- Dashboard now stable and loads correctly
+
 ## [0.1.12] - 2026-05-13
 ### Added
 - Filter maintenance tracking: days since last cleaning, remaining lifetime, cleaning status (ok/due_soon/overdue)
