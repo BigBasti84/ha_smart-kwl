@@ -22,6 +22,7 @@ from .const import (
     CONF_CO2_CONFIGS,
     CONF_DEFAULT_FAN_LEVEL,
     CONF_FAN_ENTITY,
+    CONF_FILTER_INSTALL_DATE,
     CONF_HUMIDITY_CONFIGS,
     CONF_MAX_FAN_LEVEL,
     CONF_MANUAL_INCREASE_HOLD_HOURS,
@@ -39,7 +40,7 @@ from .const import (
     DEFAULT_MANUAL_INCREASE_HOLD_HOURS,
     DEFAULT_MANUAL_OVERRIDE_DEFAULT_HOURS,
     FILTER_CLEAN_INTERVAL_DAYS,
-    FILTER_LIFETIME_MONTHS,
+    FILTER_LIFETIME_DAYS,
     FILTER_LIFETIME_WARN_DAYS,
     FILTER_WARN_DAYS,
 )
@@ -131,7 +132,10 @@ class SmartKwlController:
         self._status["manual_override_pending_hours"] = self._pending_manual_override_hours
 
         self._filter_store = FilterStore(self.hass, self.entry.entry_id)
-        await self._filter_store.async_load()
+        configured_install_date = self._config(CONF_FILTER_INSTALL_DATE)
+        await self._filter_store.async_load(
+            initial_install_date=str(configured_install_date) if configured_install_date else None
+        )
         self._update_filter_status()
 
         entities = [self._config(CONF_FAN_ENTITY)]
@@ -334,9 +338,8 @@ class SmartKwlController:
 
         # Remaining lifetime days
         if install_date_str:
-            lifetime_days = FILTER_LIFETIME_MONTHS * 30
             elapsed = (now - datetime.fromisoformat(install_date_str)).days
-            days_remaining = max(0, lifetime_days - elapsed)
+            days_remaining = max(0, FILTER_LIFETIME_DAYS - elapsed)
         else:
             days_remaining = None
 
@@ -959,7 +962,8 @@ class SmartKwlController:
         after_level = after_raw.split(" ", 1)[0]
         if before_level in {"n/a", "None"} or after_level in {"n/a", "None"}:
             return None
-        if before_level == after_level:
+        keep_without_level_change = reason in {"manual_override", "manual_override_cancel"}
+        if before_level == after_level and not keep_without_level_change:
             return None
 
         return {

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
 
 import voluptuous as vol
@@ -20,6 +21,7 @@ from .const import (
     CONF_DEFAULT_FAN_LEVEL,
     CONF_EXHAUST_TEMPERATURE_ENTITY,
     CONF_FAN_ENTITY,
+    CONF_FILTER_INSTALL_DATE,
     CONF_HUMIDITY_CONFIGS,
     CONF_HUMIDITY_SENSORS,
     CONF_INCOMING_TEMPERATURE_ENTITY,
@@ -75,6 +77,10 @@ def _level_selector(default: Any) -> selector.NumberSelector:
     return selector.NumberSelector(
         selector.NumberSelectorConfig(min=1, max=8, step=1, mode=selector.NumberSelectorMode.BOX),
     )
+
+
+def _today_iso() -> str:
+    return date.today().isoformat()
 
 
 def _int_in_range(value: Any, minimum: int, maximum: int) -> bool:
@@ -134,6 +140,10 @@ class SmartKwlFlowMixin:
                     CONF_MANUAL_OVERRIDE_DEFAULT_HOURS,
                     default=defaults.get(CONF_MANUAL_OVERRIDE_DEFAULT_HOURS, DEFAULT_MANUAL_OVERRIDE_DEFAULT_HOURS),
                 ): vol.All(vol.Coerce(int), vol.Range(min=1, max=24)),
+                vol.Required(
+                    CONF_FILTER_INSTALL_DATE,
+                    default=defaults.get(CONF_FILTER_INSTALL_DATE, _today_iso()),
+                ): selector.DateSelector(),
                 vol.Optional(CONF_INCOMING_TEMPERATURE_ENTITY, default=defaults.get(CONF_INCOMING_TEMPERATURE_ENTITY)): _sensor_selector(),
                 vol.Optional(CONF_OUTGOING_TEMPERATURE_ENTITY, default=defaults.get(CONF_OUTGOING_TEMPERATURE_ENTITY)): _sensor_selector(),
                 vol.Optional(CONF_OUTSIDE_TEMPERATURE_ENTITY, default=defaults.get(CONF_OUTSIDE_TEMPERATURE_ENTITY)): _sensor_selector(),
@@ -179,6 +189,11 @@ class SmartKwlFlowMixin:
                 return "night_summer_range"
             if night_max <= night_summer:
                 return "night_relation"
+
+        try:
+            date.fromisoformat(str(user_input.get(CONF_FILTER_INSTALL_DATE)))
+        except (TypeError, ValueError):
+            return "invalid_filter_install_date"
 
         return None
 

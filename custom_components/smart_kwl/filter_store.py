@@ -18,10 +18,11 @@ class FilterStore:
         self._store = Store(hass, FILTER_STORAGE_VERSION, f"{FILTER_STORAGE_KEY}_{entry_id}")
         self._data: dict = {}
 
-    async def async_load(self) -> None:
+    async def async_load(self, initial_install_date: str | None = None) -> None:
         self._data = await self._store.async_load() or {}
         if not self._data.get("install_date"):
-            self._data["install_date"] = datetime.now().isoformat()
+            # Prefer setup-provided date; otherwise use best-known fallback.
+            self._data["install_date"] = initial_install_date or self._data.get("last_cleaned") or datetime.now().isoformat()
             await self._store.async_save(self._data)
 
     @property
@@ -31,6 +32,10 @@ class FilterStore:
     @property
     def install_date(self) -> str | None:
         return self._data.get("install_date")
+
+    async def async_set_install_date(self, install_date: str) -> None:
+        self._data["install_date"] = install_date
+        await self._store.async_save(self._data)
 
     async def async_mark_cleaned(self) -> None:
         self._data["last_cleaned"] = datetime.now().isoformat()

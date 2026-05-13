@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.17] - 2026-05-13
+### Added
+- New setup/options field `filter_install_date` so filter install/change date is set explicitly during first integration setup
+
+### Changed
+- Filter lifetime is now capped at a strict maximum of 365 days (1 year)
+
+### Fixed
+- `Recent Changes (Last 5)` now records manual override apply/cancel actions even when fan level remains unchanged
+- Filter store initialization now prefers configured install date when creating first-time filter metadata
+
 ## [0.1.16] - 2026-05-13
 ### Fixed
 - Corrected release packaging so `button.smart_kwl_cancel_manual_override` is included in the published tag
