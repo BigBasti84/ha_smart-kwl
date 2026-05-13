@@ -23,6 +23,7 @@ async def async_setup_entry(
         [
             SmartKwlMarkFiltersCleaned(controller, entry),
             SmartKwlApplyManualOverride(controller, entry),
+            SmartKwlCancelManualOverride(controller, entry),
         ]
     )
 
@@ -67,3 +68,24 @@ class SmartKwlApplyManualOverride(ButtonEntity):
 
     async def async_press(self) -> None:
         await self._controller.async_apply_manual_override()
+
+
+class SmartKwlCancelManualOverride(ButtonEntity):
+    """Button to cancel active manual override."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Cancel Manual Override"
+    _attr_icon = "mdi:timer-off"
+
+    def __init__(self, controller: SmartKwlController, entry: ConfigEntry) -> None:
+        self._controller = controller
+        self._attr_unique_id = f"{entry.entry_id}_cancel_manual_override"
+        self._attr_object_id = f"{DOMAIN}_cancel_manual_override"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name=entry.title,
+            manufacturer="Smart KWL",
+        )
+
+    async def async_press(self) -> None:
+        await self._controller.async_cancel_manual_override()

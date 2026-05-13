@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.16] - 2026-05-13
+### Fixed
+- Corrected release packaging so `button.smart_kwl_cancel_manual_override` is included in the published tag
+
 ## [0.1.15] - 2026-05-13
 ### Changed
 - Removed `number` entity controls (level and duration steppers) from dashboard Manual Override card

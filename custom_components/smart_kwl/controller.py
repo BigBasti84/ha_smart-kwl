@@ -288,6 +288,29 @@ class SmartKwlController:
         self._notify()
         return success
 
+    async def async_cancel_manual_override(self) -> None:
+        """Cancel manual override and resume automatic control immediately."""
+        self._manual_override_until = None
+        self._manual_override_level = None
+        self._status["manual_override_active"] = False
+        self._status["manual_override_level"] = None
+        self._status["manual_override_until"] = None
+
+        self._append_check_run(
+            ["manual_override | cancelled=yes"],
+            self._action_line(
+                self.current_level(),
+                self.current_percentage(),
+                self.current_level(),
+                self.current_percentage(),
+                "manual_override_cancel",
+                "cancelled",
+            ),
+        )
+
+        await self._async_recalculate(force=True)
+        self._notify()
+
     async def async_mark_filters_cleaned(self) -> None:
         """Record that filters have been cleaned right now."""
         if self._filter_store is not None:
