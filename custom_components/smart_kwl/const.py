@@ -26,7 +26,7 @@ CONF_SUMMER_MODE_SENSOR = "summer_mode_sensor"
 CONF_CHECK_INTERVAL = "check_interval"
 CONF_MANUAL_INCREASE_HOLD_HOURS = "manual_increase_hold_hours"
 CONF_MANUAL_OVERRIDE_DEFAULT_HOURS = "manual_override_default_hours"
-CONF_FILTER_INSTALL_DATE = "filter_install_date"
+CONF_FILTER_LIFETIME_ENTITY = "filter_lifetime_entity"
 
 CONF_INCOMING_TEMPERATURE_ENTITY = "incoming_temperature_entity"
 CONF_OUTGOING_TEMPERATURE_ENTITY = "outgoing_temperature_entity"
@@ -61,5 +61,4 @@ DEFAULT_MANUAL_OVERRIDE_DEFAULT_HOURS = 2
 # Filter maintenance
 FILTER_CLEAN_INTERVAL_DAYS = 60   # warn after 1 month (30d), red after 2 months (60d)
 FILTER_WARN_DAYS = 30             # yellow threshold
-FILTER_LIFETIME_DAYS = 365        # maximum filter lifetime (1 year)
 FILTER_LIFETIME_WARN_DAYS = 30    # warn when this many days remain before end of life

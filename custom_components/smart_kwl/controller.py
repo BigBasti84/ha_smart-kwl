@@ -22,7 +22,7 @@ from .const import (
     CONF_CO2_CONFIGS,
     CONF_DEFAULT_FAN_LEVEL,
     CONF_FAN_ENTITY,
-    CONF_FILTER_INSTALL_DATE,
+    CONF_FILTER_LIFETIME_ENTITY,
     CONF_HUMIDITY_CONFIGS,
     CONF_MAX_FAN_LEVEL,
     CONF_MANUAL_INCREASE_HOLD_HOURS,
@@ -40,7 +40,6 @@ from .const import (
     DEFAULT_MANUAL_INCREASE_HOLD_HOURS,
     DEFAULT_MANUAL_OVERRIDE_DEFAULT_HOURS,
     FILTER_CLEAN_INTERVAL_DAYS,
-    FILTER_LIFETIME_DAYS,
     FILTER_LIFETIME_WARN_DAYS,
     FILTER_WARN_DAYS,
 )
@@ -116,7 +115,8 @@ class SmartKwlController:
             "manual_override_pending_hours": self._pending_manual_override_hours,
             "external_manual_hold": "none",
             "filter_last_cleaned": None,
-            "filter_install_date": None,
+            "filter_lifetime_entity": None,
+            "filter_months_remaining": None,
             "filter_days_since_cleaning": None,
             "filter_days_remaining_life": None,
             "filter_cleaning_status": "unknown",
@@ -132,10 +132,7 @@ class SmartKwlController:
         self._status["manual_override_pending_hours"] = self._pending_manual_override_hours
 
         self._filter_store = FilterStore(self.hass, self.entry.entry_id)
-        configured_install_date = self._config(CONF_FILTER_INSTALL_DATE)
-        await self._filter_store.async_load(
-            initial_install_date=str(configured_install_date) if configured_install_date else None
-        )
+        await self._filter_store.async_load()
         self._update_filter_status()
 
         entities = [self._config(CONF_FAN_ENTITY)]
@@ -149,6 +146,10 @@ class SmartKwlController:
         summer_mode_sensor = self._config(CONF_SUMMER_MODE_SENSOR)
         if summer_mode_sensor:
             entities.append(summer_mode_sensor)
+
+        lifetime_entity = self._config(CONF_FILTER_LIFETIME_ENTITY)
+        if lifetime_entity:
+            entities.append(lifetime_entity)
 
         interval = timedelta(seconds=int(self._config(CONF_CHECK_INTERVAL, 60)))
         self._unsub_state = async_track_state_change_event(self.hass, entities, self._async_handle_state_event)
@@ -328,7 +329,7 @@ class SmartKwlController:
             return
         now = datetime.now()
         last_cleaned_str = self._filter_store.last_cleaned
-        install_date_str = self._filter_store.install_date
+        lifetime_entity = self._config(CONF_FILTER_LIFETIME_ENTITY)
 
         # Days since last cleaning
         if last_cleaned_str:
@@ -336,12 +337,16 @@ class SmartKwlController:
         else:
             days_since = None
 
-        # Remaining lifetime days
-        if install_date_str:
-            elapsed = (now - datetime.fromisoformat(install_date_str)).days
-            days_remaining = max(0, FILTER_LIFETIME_DAYS - elapsed)
-        else:
-            days_remaining = None
+        # Remaining lifetime from service-counter sensor (value in months remaining).
+        months_remaining: float | None = None
+        days_remaining: int | None = None
+        if lifetime_entity:
+            lifetime_state = self._state(lifetime_entity)
+            if lifetime_state is not None:
+                parsed_months = self._float_state(lifetime_state)
+                if parsed_months is not None:
+                    months_remaining = max(0.0, parsed_months)
+                    days_remaining = int(round(months_remaining * 30))
 
         # Cleaning status
         if days_since is None:
@@ -362,7 +367,8 @@ class SmartKwlController:
             lifetime_status = "ok"
 
         self._status["filter_last_cleaned"] = last_cleaned_str
-        self._status["filter_install_date"] = install_date_str
+        self._status["filter_lifetime_entity"] = lifetime_entity
+        self._status["filter_months_remaining"] = months_remaining
         self._status["filter_days_since_cleaning"] = days_since
         self._status["filter_days_remaining_life"] = days_remaining
         self._status["filter_cleaning_status"] = cleaning_status

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.18] - 2026-05-13
+### Changed
+- Filter lifetime now derives from a configured sensor entity (`filter_lifetime_entity`) that reports months remaining
+- Removed fixed/manual lifetime date logic from setup and runtime calculations
+- Setup/options now require selecting a filter lifetime sensor (default: `sensor.vallox_rs485_ventilation_ventilation_service_counter`)
+
+### Dashboard
+- Replaced filter install date row with `sensor.smart_kwl_filter_months_remaining`
+
 ## [0.1.17] - 2026-05-13
 ### Added
 - New setup/options field `filter_install_date` so filter install/change date is set explicitly during first integration setup

@@ -24,7 +24,7 @@
           "check_interval": "Control check interval (seconds)",
           "manual_increase_hold_hours": "Manual increase hold time (hours)",
           "manual_override_default_hours": "Default manual override duration (hours)",
-          "filter_install_date": "Filter install/change date",
+          "filter_lifetime_entity": "Filter lifetime sensor (months remaining)",
           "incoming_temperature_entity": "Incoming air temperature (outside -> unit)",
           "outgoing_temperature_entity": "Outgoing supply temperature (unit -> rooms)",
           "outside_temperature_entity": "Outside ambient temperature (optional)",
@@ -53,7 +53,7 @@
           "check_interval": "Control check interval (seconds)",
           "manual_increase_hold_hours": "Manual increase hold time (hours)",
           "manual_override_default_hours": "Default manual override duration (hours)",
-          "filter_install_date": "Filter install/change date",
+          "filter_lifetime_entity": "Filter lifetime sensor (months remaining)",
           "incoming_temperature_entity": "Incoming air temperature (outside -> unit)",
           "outgoing_temperature_entity": "Outgoing supply temperature (unit -> rooms)",
           "outside_temperature_entity": "Outside ambient temperature (optional)",
@@ -86,8 +86,7 @@
       "night_summer_range": "Night summer fan level must be within min and max fan levels.",
       "night_relation": "Night max fan level must be higher than night summer fan level.",
       "sensor_range": "Sensor minimum must be lower than sensor maximum.",
-      "no_control_sensors": "At least one humidity or CO2 sensor is required.",
-      "invalid_filter_install_date": "Filter install/change date must be a valid date."
+      "no_control_sensors": "At least one humidity or CO2 sensor is required."
     }
   },
   "options": {
@@ -114,7 +113,7 @@
           "check_interval": "Control check interval (seconds)",
           "manual_increase_hold_hours": "Manual increase hold time (hours)",
           "manual_override_default_hours": "Default manual override duration (hours)",
-          "filter_install_date": "Filter install/change date",
+          "filter_lifetime_entity": "Filter lifetime sensor (months remaining)",
           "incoming_temperature_entity": "Incoming air temperature (outside -> unit)",
           "outgoing_temperature_entity": "Outgoing supply temperature (unit -> rooms)",
           "outside_temperature_entity": "Outside ambient temperature (optional)",
@@ -147,8 +146,7 @@
       "night_summer_range": "Night summer fan level must be within min and max fan levels.",
       "night_relation": "Night max fan level must be higher than night summer fan level.",
       "sensor_range": "Sensor minimum must be lower than sensor maximum.",
-      "no_control_sensors": "At least one humidity or CO2 sensor is required.",
-      "invalid_filter_install_date": "Filter install/change date must be a valid date."
+      "no_control_sensors": "At least one humidity or CO2 sensor is required."
     }
   }
 }

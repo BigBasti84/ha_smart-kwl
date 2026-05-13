@@ -77,8 +77,8 @@ views:
           - sensor.smart_kwl_filter_cleaning_status
           - sensor.smart_kwl_filter_days_since_cleaning
           - sensor.smart_kwl_filter_days_remaining
+          - sensor.smart_kwl_filter_months_remaining
           - sensor.smart_kwl_filter_last_cleaned
-          - sensor.smart_kwl_filter_install_date
           - button.smart_kwl_filters_cleaned
 
       - type: heading

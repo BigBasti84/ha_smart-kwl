@@ -60,9 +60,10 @@ async def async_setup_entry(
         SmartKwlCheckLogSensor(controller, entry),
         SmartKwlFilterSensor(controller, entry, "Filter Days Since Cleaning", "filter_days_since_cleaning", "filter_days_since_cleaning", "d"),
         SmartKwlFilterSensor(controller, entry, "Filter Days Remaining", "filter_days_remaining", "filter_days_remaining_life", "d"),
+        SmartKwlFilterSensor(controller, entry, "Filter Months Remaining", "filter_months_remaining", "filter_months_remaining"),
         SmartKwlFilterSensor(controller, entry, "Filter Cleaning Status", "filter_cleaning_status", "filter_cleaning_status"),
         SmartKwlFilterSensor(controller, entry, "Filter Last Cleaned", "filter_last_cleaned", "filter_last_cleaned"),
-        SmartKwlFilterSensor(controller, entry, "Filter Install Date", "filter_install_date", "filter_install_date"),
+        SmartKwlFilterSensor(controller, entry, "Filter Lifetime Source", "filter_lifetime_source", "filter_lifetime_entity"),
     ]
 
     for cfg in TEMP_CONFIGS:
