@@ -194,7 +194,7 @@ views:
           {% endif %}
 
       - type: history-graph
-        title: Incoming / Outgoing Temperatures (24h)
+        title: Temperatures (24h)
         hours_to_show: 24
         refresh_interval: 60
         entities:
@@ -202,29 +202,7 @@ views:
             name: Incoming
           - entity: sensor.smart_kwl_outgoing_temperature
             name: Outgoing
-
-      - type: markdown
-        title: Diagnostics
-        content: |
-          Detected Smart KWL entities in this HA instance:
-
-          {% for s in states.sensor %}
-          {% if '_target_fan_level' in s.entity_id
-             or '_target_fan_percentage' in s.entity_id
-             or '_co2_combined' in s.entity_id
-             or '_co2_low' in s.entity_id
-             or '_co2_high' in s.entity_id
-             or '_humidity_combined' in s.entity_id
-             or '_humidity_low' in s.entity_id
-             or '_humidity_high' in s.entity_id
-             or '_incoming_temperature' in s.entity_id
-             or '_outgoing_temperature' in s.entity_id %}
-          - {{ s.entity_id }} = {{ states(s.entity_id) }}
-          {% endif %}
-          {% endfor %}
-
-          {% for b in states.binary_sensor %}
-          {% if '_ventilation_on' in b.entity_id or '_summer_mode_active' in b.entity_id or '_night_mode_active' in b.entity_id %}
-          - {{ b.entity_id }} = {{ states(b.entity_id) }}
-          {% endif %}
-          {% endfor %}
+          - entity: sensor.smart_kwl_outside_temperature
+            name: Outside
+          - entity: sensor.smart_kwl_exhaust_temperature
+            name: Exhaust

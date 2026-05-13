@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.10] - 2026-05-13
+### Fixed
+- Added `device_info` to all entity classes (sensor, binary_sensor, fan) — required for `_attr_has_entity_name = True` in HA 2024.x+; without this, no entities were registered
+- Removed Diagnostics card from dashboard
+- Improved temperature history graph (all 4 temperature sensors)
+
 ## [0.1.9] - 2026-05-13
 ### Fixed
 - Fixed `AttributeError: property 'config_entry' has no setter` when opening integration options in HA 2024.x+

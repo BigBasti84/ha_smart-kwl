@@ -6,6 +6,7 @@ from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_ON
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
@@ -37,6 +38,11 @@ class SmartKwlVentilationState(BinarySensorEntity):
     def __init__(self, controller: SmartKwlController, entry: ConfigEntry) -> None:
         self._controller = controller
         self._attr_unique_id = f"{entry.entry_id}_ventilation_on"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name=entry.title,
+            manufacturer="Smart KWL",
+        )
         self._remove_listener = None
 
     async def async_added_to_hass(self) -> None:
@@ -71,6 +77,11 @@ class SmartKwlModeState(BinarySensorEntity):
         self._status_key = status_key
         self._attr_name = name
         self._attr_unique_id = f"{entry.entry_id}_{unique_suffix}"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name=entry.title,
+            manufacturer="Smart KWL",
+        )
         self._remove_listener = None
 
     async def async_added_to_hass(self) -> None:

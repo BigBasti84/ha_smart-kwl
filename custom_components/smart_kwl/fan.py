@@ -5,6 +5,7 @@ from __future__ import annotations
 from homeassistant.components.fan import FanEntity, FanEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
@@ -31,6 +32,11 @@ class SmartKwlManualFan(FanEntity):
     def __init__(self, controller: SmartKwlController, entry: ConfigEntry) -> None:
         self._controller = controller
         self._attr_unique_id = f"{entry.entry_id}_manual_fan"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name=entry.title,
+            manufacturer="Smart KWL",
+        )
         min_level, max_level = self._controller.level_bounds()
         self._attr_preset_modes = [str(level) for level in range(min_level, max_level + 1)]
         self._remove_listener = None
