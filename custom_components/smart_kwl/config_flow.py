@@ -302,14 +302,13 @@ class SmartKwlConfigFlow(SmartKwlFlowMixin, config_entries.ConfigFlow, domain=DO
 
     @staticmethod
     def async_get_options_flow(config_entry: config_entries.ConfigEntry):
-        return SmartKwlOptionsFlow(config_entry)
+        return SmartKwlOptionsFlow()
 
 
 class SmartKwlOptionsFlow(SmartKwlFlowMixin, config_entries.OptionsFlow):
     """Handle options for Smart KWL."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self.config_entry = config_entry
+    def __init__(self) -> None:
         self._reset_state()
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None):

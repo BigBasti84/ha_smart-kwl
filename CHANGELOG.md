@@ -1,6 +1,10 @@
 # Changelog
 
-## [0.1.7] - 2026-05-13
+## [0.1.9] - 2026-05-13
+### Fixed
+- Fixed `AttributeError: property 'config_entry' has no setter` when opening integration options in HA 2024.x+
+
+## [0.1.8] - 2026-05-13
 ### Fixed
 - Fixed thread-safety issue in controller state-change scheduling that caused `coroutine was never awaited` warnings and instability
 - Updated manifest documentation and issue tracker URLs to the actual repository
