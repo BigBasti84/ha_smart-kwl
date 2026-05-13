@@ -338,10 +338,17 @@ class SmartKwlController:
             % (base_level, humidity_ratio, co2_ratio, demand_ratio, target_level)
         )
 
+        summer_sensor_entity = self._config(CONF_SUMMER_MODE_SENSOR)
+        summer_state = self._state(summer_sensor_entity)
+        summer_active = summer_state is not None and summer_state.state == STATE_ON
+        detail_lines.append(
+            "summer_check | sensor=%s | active=%s"
+            % (summer_sensor_entity or "none", "yes" if summer_active else "no")
+        )
+
         if self._is_night_active():
             night_target = default_level
-            summer_state = self._state(self._config(CONF_SUMMER_MODE_SENSOR))
-            if summer_state is not None and summer_state.state == STATE_ON:
+            if summer_active:
                 night_target = int(self._config(CONF_NIGHT_SUMMER_FAN_LEVEL, default_level))
                 reason = "night_summer"
                 detail_lines.append("night_check | active=yes | summer_mode=on")

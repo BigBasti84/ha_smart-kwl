@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.5] - 2026-05-13
+### Fixed
+- Check log now always reports summer mode state via `summer_check` line
+- Night decision logging now clearly shows when `night_summer` is applied
+
 ## [0.1.4] - 2026-05-13
 ### Fixed
 - Dashboard card now auto-detects Smart KWL check log sensor entity ID instead of relying on a single hardcoded ID
