@@ -2,22 +2,39 @@ type: markdown
 title: Smart KWL - Last 10 Checks
 content: |
   {% set preferred = 'sensor.smart_kwl_check_log' %}
-  {% set candidates = states.sensor
-      | map(attribute='entity_id')
-      | select('search', 'smart_kwl')
-      | select('search', 'check_log')
-      | list %}
-  {% set entity = preferred if states(preferred) != 'unknown' or state_attr(preferred, 'check_history') is not none else (candidates[0] if candidates | count > 0 else none) %}
+  {% set ns = namespace(entity=None, candidates=[]) %}
 
-  {% if not entity %}
-  No Smart KWL check log sensor found. Open Developer Tools -> States and look for an entity that ends with `_check_log`, then set it manually in this card.
+  {% if state_attr(preferred, 'check_history') is not none %}
+    {% set ns.entity = preferred %}
   {% else %}
-  {% set history = state_attr(entity, 'check_history') or [] %}
+    {% for s in states.sensor %}
+      {% if 'smart_kwl' in s.entity_id and 'check_log' in s.entity_id %}
+        {% set ns.candidates = ns.candidates + [s.entity_id] %}
+      {% endif %}
+    {% endfor %}
+    {% if ns.candidates | count > 0 %}
+      {% set ns.entity = ns.candidates[0] %}
+    {% endif %}
+  {% endif %}
+
+  {% if not ns.entity %}
+  No Smart KWL check log sensor found.
+
+  Open Developer Tools -> States and look for an entity containing both `smart_kwl` and `check_log`.
+
+  {% if ns.candidates | count > 0 %}
+  Possible candidates found:
+  {% for e in ns.candidates %}
+  - {{ e }}
+  {% endfor %}
+  {% endif %}
+  {% else %}
+  {% set history = state_attr(ns.entity, 'check_history') or [] %}
 
   {% if history | count == 0 %}
-  No checks available yet for {{ entity }}.
+  No checks available yet for {{ ns.entity }}.
   {% else %}
-  Showing data from **{{ entity }}**
+  Showing data from **{{ ns.entity }}**
 
   {% for run in history %}
   ### Check {{ loop.index }}
