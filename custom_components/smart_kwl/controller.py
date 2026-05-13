@@ -216,9 +216,17 @@ class SmartKwlController:
     def _config(self, key: str, default: Any = None) -> Any:
         return self.entry.options.get(key, self.entry.data.get(key, default))
 
+    def _schedule_recalculate(self, force: bool) -> None:
+        """Schedule recalculation on the Home Assistant event loop."""
+
+        def _run() -> None:
+            self.hass.async_create_task(self._async_recalculate(force=force))
+
+        self.hass.loop.call_soon_threadsafe(_run)
+
     def _async_handle_state_event(self, event) -> None:
         # State changes only queue recalculation; min interval applies writes.
-        self.hass.async_create_task(self._async_recalculate(force=False))
+        self._schedule_recalculate(force=False)
 
     async def _async_handle_interval_event(self, now) -> None:
         await self._async_recalculate(force=False)

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.7] - 2026-05-13
+### Fixed
+- Fixed thread-safety issue in controller state-change scheduling that caused `coroutine was never awaited` warnings and instability
+- Updated manifest documentation and issue tracker URLs to the actual repository
+
 ## [0.1.6] - 2026-05-13
 ### Added
 - New Mushroom dashboard template at dashboard/smart_kwl_mushroom_dashboard.yaml
