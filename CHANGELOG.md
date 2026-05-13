@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.6] - 2026-05-13
+### Added
+- New Mushroom dashboard template at dashboard/smart_kwl_mushroom_dashboard.yaml
+- New combined diagnostic sensors for CO2 and humidity including low/high thresholds
+- New binary sensors for Summer Mode Active and Night Mode Active
+
 ## [0.1.5] - 2026-05-13
 ### Fixed
 - Check log now always reports summer mode state via `summer_check` line

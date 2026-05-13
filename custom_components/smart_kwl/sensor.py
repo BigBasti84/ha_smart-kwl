@@ -47,6 +47,12 @@ async def async_setup_entry(
     entities: list[SensorEntity] = [
         SmartKwlDiagnosticSensor(controller, entry, "Target Fan Level", "target_fan_level", "target_level"),
         SmartKwlDiagnosticSensor(controller, entry, "Target Fan Percentage", "target_fan_percentage", "target_percentage"),
+        SmartKwlDiagnosticSensor(controller, entry, "Humidity Combined", "humidity_combined", "humidity_combined", "%"),
+        SmartKwlDiagnosticSensor(controller, entry, "Humidity Low", "humidity_low", "humidity_low", "%"),
+        SmartKwlDiagnosticSensor(controller, entry, "Humidity High", "humidity_high", "humidity_high", "%"),
+        SmartKwlDiagnosticSensor(controller, entry, "CO2 Combined", "co2_combined", "co2_combined", "ppm"),
+        SmartKwlDiagnosticSensor(controller, entry, "CO2 Low", "co2_low", "co2_low", "ppm"),
+        SmartKwlDiagnosticSensor(controller, entry, "CO2 High", "co2_high", "co2_high", "ppm"),
         SmartKwlCheckLogSensor(controller, entry),
     ]
 
@@ -88,9 +94,19 @@ class SmartKwlBaseEntity(RestoreEntity):
 class SmartKwlDiagnosticSensor(SmartKwlBaseEntity, SensorEntity):
     """Expose controller diagnostics as sensors."""
 
-    def __init__(self, controller: SmartKwlController, entry: ConfigEntry, name: str, unique_suffix: str, status_key: str) -> None:
+    def __init__(
+        self,
+        controller: SmartKwlController,
+        entry: ConfigEntry,
+        name: str,
+        unique_suffix: str,
+        status_key: str,
+        unit: str | None = None,
+    ) -> None:
         super().__init__(controller, entry, name, unique_suffix)
         self._status_key = status_key
+        if unit is not None:
+            self._attr_native_unit_of_measurement = unit
 
     @property
     def native_value(self) -> Any:

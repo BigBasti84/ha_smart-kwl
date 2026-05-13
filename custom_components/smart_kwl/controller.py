@@ -73,6 +73,14 @@ class SmartKwlController:
             "last_reason": "init",
             "target_level": None,
             "target_percentage": None,
+            "humidity_combined": None,
+            "humidity_low": None,
+            "humidity_high": None,
+            "co2_combined": None,
+            "co2_low": None,
+            "co2_high": None,
+            "summer_mode_active": False,
+            "night_mode_active": False,
             "last_apply_success": None,
             "last_error": None,
             "last_apply": None,
@@ -317,10 +325,21 @@ class SmartKwlController:
         base_level = max(min_level, min(max_level, base_level))
 
         detail_lines: list[str] = []
-        humidity_ratio, humidity_lines = self._evaluate_sensor_group("humidity", self._config(CONF_HUMIDITY_CONFIGS, []))
-        co2_ratio, co2_lines = self._evaluate_sensor_group("co2", self._config(CONF_CO2_CONFIGS, []))
+        humidity_ratio, humidity_lines, humidity_current, humidity_low, humidity_high = self._evaluate_sensor_group(
+            "humidity", self._config(CONF_HUMIDITY_CONFIGS, [])
+        )
+        co2_ratio, co2_lines, co2_current, co2_low, co2_high = self._evaluate_sensor_group(
+            "co2", self._config(CONF_CO2_CONFIGS, [])
+        )
         detail_lines.extend(humidity_lines)
         detail_lines.extend(co2_lines)
+
+        self._status["humidity_combined"] = humidity_current
+        self._status["humidity_low"] = humidity_low
+        self._status["humidity_high"] = humidity_high
+        self._status["co2_combined"] = co2_current
+        self._status["co2_low"] = co2_low
+        self._status["co2_high"] = co2_high
 
         demand_ratio = max(humidity_ratio, co2_ratio)
 
@@ -341,12 +360,15 @@ class SmartKwlController:
         summer_sensor_entity = self._config(CONF_SUMMER_MODE_SENSOR)
         summer_state = self._state(summer_sensor_entity)
         summer_active = summer_state is not None and summer_state.state == STATE_ON
+        self._status["summer_mode_active"] = summer_active
         detail_lines.append(
             "summer_check | sensor=%s | active=%s"
             % (summer_sensor_entity or "none", "yes" if summer_active else "no")
         )
 
-        if self._is_night_active():
+        night_active = self._is_night_active()
+        self._status["night_mode_active"] = night_active
+        if night_active:
             night_target = default_level
             if summer_active:
                 night_target = int(self._config(CONF_NIGHT_SUMMER_FAN_LEVEL, default_level))
@@ -390,9 +412,16 @@ class SmartKwlController:
         parsed = time.fromisoformat(str(value))
         return parsed
 
-    def _evaluate_sensor_group(self, kind: str, configs: list[dict[str, Any]]) -> tuple[float, list[str]]:
+    def _evaluate_sensor_group(
+        self,
+        kind: str,
+        configs: list[dict[str, Any]],
+    ) -> tuple[float, list[str], float | None, float | None, float | None]:
         ratio = 0.0
         lines: list[str] = []
+        combined_value: float | None = None
+        combined_low: float | None = None
+        combined_high: float | None = None
 
         for cfg in configs:
             entity_id = cfg.get(CONF_SENSOR_ENTITY_ID)
@@ -420,6 +449,10 @@ class SmartKwlController:
 
             sensor_ratio = self._scale_to_unit(value, min_v, max_v)
             ratio = max(ratio, sensor_ratio)
+            if combined_value is None or sensor_ratio >= ratio:
+                combined_value = value
+                combined_low = min_v
+                combined_high = max_v
             lines.append(
                 "%s_check | sensor=%s | min=%.2f | max=%.2f | measured=%.2f | result=%.2f"
                 % (kind, entity_id, min_v, max_v, value, sensor_ratio)
@@ -429,7 +462,7 @@ class SmartKwlController:
             lines.append("%s_check | sensor=none | result=not_configured" % kind)
 
         lines.append("%s_check | group_worst_result=%.2f" % (kind, ratio))
-        return ratio, lines
+        return ratio, lines, combined_value, combined_low, combined_high
 
     async def _apply_fan_level_with_verification(self, decision: ControlDecision) -> bool:
         fan_entity = self._config(CONF_FAN_ENTITY)

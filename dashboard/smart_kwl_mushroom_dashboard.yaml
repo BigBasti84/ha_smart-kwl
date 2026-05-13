@@ -1,0 +1,91 @@
+title: Smart KWL Dashboard
+path: smart-kwl
+icon: mdi:fan-auto
+cards:
+  - type: custom:mushroom-title-card
+    title: Smart KWL
+    subtitle: Ventilation overview and diagnostics
+
+  - type: custom:mushroom-chips-card
+    chips:
+      - type: entity
+        entity: binary_sensor.smart_kwl_ventilation_on
+        icon: mdi:fan
+        content_info: state
+      - type: entity
+        entity: binary_sensor.smart_kwl_summer_mode_active
+        icon: mdi:white-balance-sunny
+        content_info: state
+      - type: entity
+        entity: binary_sensor.smart_kwl_night_mode_active
+        icon: mdi:weather-night
+        content_info: state
+
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-entity-card
+        entity: sensor.smart_kwl_target_fan_level
+        name: Current Fan Speed
+        icon: mdi:fan-chevron-up
+        primary_info: state
+        secondary_info: name
+      - type: custom:mushroom-entity-card
+        entity: sensor.smart_kwl_target_fan_percentage
+        name: Fan Percentage
+        icon: mdi:percent
+        primary_info: state
+        secondary_info: name
+
+  - type: history-graph
+    title: Fan Speed History (24h)
+    hours_to_show: 24
+    refresh_interval: 60
+    entities:
+      - entity: sensor.smart_kwl_target_fan_level
+        name: Fan Level (1-8)
+
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-template-card
+        entity: sensor.smart_kwl_co2_combined
+        icon: mdi:molecule-co2
+        primary: >-
+          CO2: {{ states('sensor.smart_kwl_co2_combined') }} ppm
+        secondary: >-
+          Low {{ states('sensor.smart_kwl_co2_low') }} / High {{ states('sensor.smart_kwl_co2_high') }} ppm
+      - type: custom:mushroom-template-card
+        entity: sensor.smart_kwl_humidity_combined
+        icon: mdi:water-percent
+        primary: >-
+          Humidity: {{ states('sensor.smart_kwl_humidity_combined') }} %
+        secondary: >-
+          Low {{ states('sensor.smart_kwl_humidity_low') }} / High {{ states('sensor.smart_kwl_humidity_high') }} %
+
+  - type: markdown
+    title: Last 5 Changes
+    content: |
+      {% set entity = 'sensor.smart_kwl_check_log' %}
+      {% set history = state_attr(entity, 'check_history') or [] %}
+      {% if history | count == 0 %}
+      No changes available yet.
+      {% else %}
+      {% for run in history[:5] %}
+      {% set ts = run[0].split('at=')[-1] if run | count > 0 else 'n/a' %}
+      {% set action = (run | select('search', '^action \|') | list | first) %}
+      {% if action %}
+      {% set reason = action.split('reason=')[-1].split(' |')[0] if 'reason=' in action else 'unknown' %}
+      {% set level = action.split('after_level=')[-1].split(' ')[0] if 'after_level=' in action else 'n/a' %}
+      - {{ ts }}: Set Fan Speed to {{ level }} because of {{ reason }}
+      {% endif %}
+      {% endfor %}
+      {% endif %}
+
+  - type: history-graph
+    title: Incoming / Outgoing Temperatures
+    hours_to_show: 24
+    refresh_interval: 60
+    entities:
+      - entity: sensor.smart_kwl_incoming_temperature
+        name: Incoming
+      - entity: sensor.smart_kwl_outgoing_temperature
+        name: Outgoing
