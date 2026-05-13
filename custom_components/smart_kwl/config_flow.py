@@ -11,6 +11,7 @@ from homeassistant.const import CONF_NAME
 from homeassistant.helpers import selector
 
 from .const import (
+    CONF_AWAY_ENABLED,
     CONF_AWAY_FAN_LEVEL,
     CONF_AWAY_SENSOR,
     CONF_CHECK_INTERVAL,
@@ -35,6 +36,7 @@ from .const import (
     CONF_SENSOR_MAX,
     CONF_SENSOR_MIN,
     CONF_SUMMER_MODE_SENSOR,
+    DEFAULT_AWAY_ENABLED,
     DEFAULT_AWAY_FAN_LEVEL,
     DEFAULT_CHECK_INTERVAL,
     DEFAULT_CO2_MAX,
@@ -110,6 +112,7 @@ class SmartKwlFlowMixin:
                 vol.Required(CONF_MIN_FAN_LEVEL, default=defaults.get(CONF_MIN_FAN_LEVEL, DEFAULT_MIN_FAN_LEVEL)): _level_selector(defaults.get(CONF_MIN_FAN_LEVEL, DEFAULT_MIN_FAN_LEVEL)),
                 vol.Required(CONF_MAX_FAN_LEVEL, default=defaults.get(CONF_MAX_FAN_LEVEL, DEFAULT_MAX_FAN_LEVEL)): _level_selector(defaults.get(CONF_MAX_FAN_LEVEL, DEFAULT_MAX_FAN_LEVEL)),
                 vol.Required(CONF_DEFAULT_FAN_LEVEL, default=defaults.get(CONF_DEFAULT_FAN_LEVEL, DEFAULT_FAN_LEVEL)): _level_selector(defaults.get(CONF_DEFAULT_FAN_LEVEL, DEFAULT_FAN_LEVEL)),
+                vol.Required(CONF_AWAY_ENABLED, default=defaults.get(CONF_AWAY_ENABLED, DEFAULT_AWAY_ENABLED)): bool,
                 vol.Optional(CONF_AWAY_SENSOR, default=defaults.get(CONF_AWAY_SENSOR)): _binary_selector(),
                 vol.Optional(CONF_AWAY_FAN_LEVEL, default=defaults.get(CONF_AWAY_FAN_LEVEL, DEFAULT_AWAY_FAN_LEVEL)): _level_selector(defaults.get(CONF_AWAY_FAN_LEVEL, DEFAULT_AWAY_FAN_LEVEL)),
                 vol.Required(CONF_NIGHT_ENABLED, default=defaults.get(CONF_NIGHT_ENABLED, DEFAULT_NIGHT_ENABLED)): bool,
@@ -144,9 +147,12 @@ class SmartKwlFlowMixin:
         if not _int_in_range(default_level, min_level, max_level):
             return "default_level_range"
 
+        away_enabled = bool(user_input.get(CONF_AWAY_ENABLED, False))
         away_sensor = user_input.get(CONF_AWAY_SENSOR)
         away_level = user_input.get(CONF_AWAY_FAN_LEVEL)
-        if away_sensor and away_level is not None and not _int_in_range(away_level, min_level, max_level):
+        if away_enabled and not away_sensor:
+            return "away_sensor_required"
+        if away_enabled and away_level is not None and not _int_in_range(away_level, min_level, max_level):
             return "away_level_range"
 
         if not user_input.get(CONF_HUMIDITY_SENSORS) and not user_input.get(CONF_CO2_SENSORS):
@@ -159,6 +165,8 @@ class SmartKwlFlowMixin:
                 return "night_max_range"
             if not _int_in_range(night_summer, min_level, max_level):
                 return "night_summer_range"
+            if night_max <= night_summer:
+                return "night_relation"
 
         return None
 

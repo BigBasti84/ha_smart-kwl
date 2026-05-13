@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2] - 2026-05-13
+### Changed
+- Added explicit optional toggle for home/away mode in config flow
+- Enforced validation: night max fan level must be higher than night summer fan level
+- Updated defaults: night max fan level 5, night summer fan level 4
+- Added controller fallbacks with warning logs when required entities are unavailable or invalid
+
 ## [0.1.1] - 2026-05-13
 ### Added
 - Dedicated Smart KWL manual fan entity with discrete levels 1..8

@@ -15,6 +15,7 @@ from homeassistant.helpers.event import async_track_state_change_event, async_tr
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    CONF_AWAY_ENABLED,
     CONF_AWAY_FAN_LEVEL,
     CONF_AWAY_SENSOR,
     CONF_CHECK_INTERVAL,
@@ -66,6 +67,8 @@ class SmartKwlController:
         self._last_apply: datetime | None = None
         self._last_level: int | None = None
         self._listeners: list[Callable[[], None]] = []
+        self._warned_unavailable: set[str] = set()
+        self._warned_invalid: set[str] = set()
         self._status: dict[str, Any] = {
             "last_reason": "init",
             "target_level": None,
@@ -306,8 +309,9 @@ class SmartKwlController:
             return None
 
         away_level = int(self._config(CONF_AWAY_FAN_LEVEL, min_level))
-        away_sensor = self._state(self._config(CONF_AWAY_SENSOR))
-        away_active = away_sensor is not None and away_sensor.state == STATE_ON
+        away_enabled = bool(self._config(CONF_AWAY_ENABLED, False))
+        away_sensor = self._state(self._config(CONF_AWAY_SENSOR)) if away_enabled else None
+        away_active = away_enabled and away_sensor is not None and away_sensor.state == STATE_ON
 
         base_level = away_level if away_active else default_level
         base_level = max(min_level, min(max_level, base_level))
@@ -400,6 +404,7 @@ class SmartKwlController:
 
             value = self._float_state(state)
             if value is None:
+                self._warn_invalid_once(entity_id, f"Entity {entity_id} has non-numeric state '{state.state}'. Falling back to ignore this sensor until valid.")
                 lines.append(
                     "%s_check | sensor=%s | min=%.2f | max=%.2f | measured=%s | result=invalid"
                     % (kind, entity_id, min_v, max_v, state.state)
@@ -422,27 +427,32 @@ class SmartKwlController:
     async def _apply_fan_level_with_verification(self, decision: ControlDecision) -> bool:
         fan_entity = self._config(CONF_FAN_ENTITY)
         if not fan_entity:
+            _LOGGER.warning("No target entity configured. Cannot apply fan level.")
             return False
 
         # Try once and retry once if verification fails.
         for attempt in (1, 2):
-            if fan_entity.startswith("fan."):
-                await self.hass.services.async_call(
-                    "fan",
-                    "set_percentage",
-                    {"entity_id": fan_entity, "percentage": decision.percentage},
-                    blocking=True,
-                )
-            elif fan_entity.startswith("climate."):
-                await self.hass.services.async_call(
-                    "climate",
-                    "set_fan_mode",
-                    {"entity_id": fan_entity, "fan_mode": str(decision.level)},
-                    blocking=True,
-                )
-            else:
-                _LOGGER.warning("Unsupported target entity domain for %s", fan_entity)
-                return False
+            try:
+                if fan_entity.startswith("fan."):
+                    await self.hass.services.async_call(
+                        "fan",
+                        "set_percentage",
+                        {"entity_id": fan_entity, "percentage": decision.percentage},
+                        blocking=True,
+                    )
+                elif fan_entity.startswith("climate."):
+                    await self.hass.services.async_call(
+                        "climate",
+                        "set_fan_mode",
+                        {"entity_id": fan_entity, "fan_mode": str(decision.level)},
+                        blocking=True,
+                    )
+                else:
+                    _LOGGER.warning("Unsupported target entity domain for %s", fan_entity)
+                    return False
+            except Exception as err:  # pragma: no cover - defensive runtime fallback
+                _LOGGER.warning("Failed to call service for %s: %s", fan_entity, err)
+                continue
 
             await asyncio.sleep(1)
 
@@ -463,7 +473,9 @@ class SmartKwlController:
     def _fan_percentage(self, fan_entity: str) -> int | None:
         fan_state = self.hass.states.get(fan_entity)
         if fan_state is None:
+            self._warn_unavailable_once(fan_entity, f"Target entity {fan_entity} is unavailable. Falling back until it returns.")
             return None
+        self._clear_unavailable_warning(fan_entity)
 
         if fan_state.state == STATE_OFF:
             return 0
@@ -475,16 +487,31 @@ class SmartKwlController:
             try:
                 level = int(raw_mode)
             except (TypeError, ValueError):
+                self._warn_invalid_once(
+                    fan_entity,
+                    f"Climate entity {fan_entity} has invalid fan_mode '{raw_mode}'. Falling back until valid.",
+                )
                 return None
+            self._clear_invalid_warning(fan_entity)
             return self._level_to_percentage(level, max_level)
 
         raw_percentage = fan_state.attributes.get("percentage")
         if raw_percentage is None:
+            self._warn_invalid_once(
+                fan_entity,
+                f"Fan entity {fan_entity} has no percentage attribute. Falling back until available.",
+            )
             return None
 
         try:
-            return int(raw_percentage)
+            percentage = int(raw_percentage)
+            self._clear_invalid_warning(fan_entity)
+            return percentage
         except (TypeError, ValueError):
+            self._warn_invalid_once(
+                fan_entity,
+                f"Fan entity {fan_entity} has invalid percentage '{raw_percentage}'. Falling back until valid.",
+            )
             return None
 
     def _append_check_run(self, detail_lines: list[str], action_line: str) -> None:
@@ -541,9 +568,32 @@ class SmartKwlController:
         if not entity_id:
             return None
         state = self.hass.states.get(entity_id)
-        if state is None or state.state in {STATE_UNKNOWN, STATE_UNAVAILABLE}:
+        if state is None:
+            self._warn_unavailable_once(entity_id, f"Entity {entity_id} is missing/unavailable. Falling back until it returns.")
             return None
+        if state.state in {STATE_UNKNOWN, STATE_UNAVAILABLE}:
+            self._warn_unavailable_once(entity_id, f"Entity {entity_id} state is {state.state}. Falling back until it becomes available.")
+            return None
+        self._clear_unavailable_warning(entity_id)
         return state
+
+    def _warn_unavailable_once(self, entity_id: str, message: str) -> None:
+        if entity_id in self._warned_unavailable:
+            return
+        self._warned_unavailable.add(entity_id)
+        _LOGGER.warning(message)
+
+    def _clear_unavailable_warning(self, entity_id: str) -> None:
+        self._warned_unavailable.discard(entity_id)
+
+    def _warn_invalid_once(self, entity_id: str, message: str) -> None:
+        if entity_id in self._warned_invalid:
+            return
+        self._warned_invalid.add(entity_id)
+        _LOGGER.warning(message)
+
+    def _clear_invalid_warning(self, entity_id: str) -> None:
+        self._warned_invalid.discard(entity_id)
 
     @staticmethod
     def _float_state(state: State) -> float | None:

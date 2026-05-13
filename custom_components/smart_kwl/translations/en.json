@@ -12,6 +12,7 @@
           "min_fan_level": "Minimum fan level",
           "max_fan_level": "Maximum fan level",
           "default_fan_level": "Default fan level",
+          "away_enabled": "Enable home/away mode",
           "away_sensor": "Away binary sensor",
           "away_fan_level": "Away fan level",
           "night_enabled": "Enable night mode",
@@ -37,6 +38,7 @@
           "min_fan_level": "Minimum fan level",
           "max_fan_level": "Maximum fan level",
           "default_fan_level": "Default fan level",
+          "away_enabled": "Enable home/away mode",
           "away_sensor": "Away binary sensor",
           "away_fan_level": "Away fan level",
           "night_enabled": "Enable night mode",
@@ -72,9 +74,11 @@
     "error": {
       "fan_level_range": "Minimum fan level must be lower than or equal to maximum fan level.",
       "default_level_range": "Default fan level must be within min and max fan levels.",
+      "away_sensor_required": "Enable home/away mode requires an away binary sensor.",
       "away_level_range": "Away fan level must be within min and max fan levels.",
       "night_max_range": "Night max fan level must be within min and max fan levels.",
       "night_summer_range": "Night summer fan level must be within min and max fan levels.",
+      "night_relation": "Night max fan level must be higher than night summer fan level.",
       "sensor_range": "Sensor minimum must be lower than sensor maximum.",
       "no_control_sensors": "At least one humidity or CO2 sensor is required."
     }
@@ -91,6 +95,7 @@
           "min_fan_level": "Minimum fan level",
           "max_fan_level": "Maximum fan level",
           "default_fan_level": "Default fan level",
+          "away_enabled": "Enable home/away mode",
           "away_sensor": "Away binary sensor",
           "away_fan_level": "Away fan level",
           "night_enabled": "Enable night mode",
@@ -126,9 +131,11 @@
     "error": {
       "fan_level_range": "Minimum fan level must be lower than or equal to maximum fan level.",
       "default_level_range": "Default fan level must be within min and max fan levels.",
+      "away_sensor_required": "Enable home/away mode requires an away binary sensor.",
       "away_level_range": "Away fan level must be within min and max fan levels.",
       "night_max_range": "Night max fan level must be within min and max fan levels.",
       "night_summer_range": "Night summer fan level must be within min and max fan levels.",
+      "night_relation": "Night max fan level must be higher than night summer fan level.",
       "sensor_range": "Sensor minimum must be lower than sensor maximum.",
       "no_control_sensors": "At least one humidity or CO2 sensor is required."
     }
