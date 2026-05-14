@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.26] - 2026-05-14
+### Fixed
+- Manual override state now persists across HA restarts and integration reloads
+- Active override (level + expiry time) is saved to HA storage on apply and restored on startup
+- If the override expired while HA was offline, it is discarded on restore rather than resumed
+- Override storage is cleared on cancel or natural expiry
+
 ## [0.1.25] - 2026-05-14
 ### Fixed
 - Manual Override card fully rewritten using native HA card types only (no `custom:button-card` required)

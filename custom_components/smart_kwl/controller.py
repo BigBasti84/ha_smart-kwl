@@ -45,6 +45,7 @@ from .const import (
     FILTER_WARN_DAYS,
 )
 from .filter_store import FilterStore
+from .override_store import OverrideStore
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -81,6 +82,7 @@ class SmartKwlController:
         self._warned_unavailable: set[str] = set()
         self._warned_invalid: set[str] = set()
         self._filter_store: FilterStore | None = None
+        self._override_store: OverrideStore | None = None
         self._external_increase_hold_until: datetime | None = None
         self._external_increase_level: int | None = None
         self._external_decrease_level: int | None = None
@@ -136,6 +138,34 @@ class SmartKwlController:
         self._filter_store = FilterStore(self.hass, self.entry.entry_id)
         await self._filter_store.async_load()
         self._update_filter_status()
+
+        self._override_store = OverrideStore(self.hass, self.entry.entry_id)
+        await self._override_store.async_load()
+        # Restore a previously active timed override if it has not yet expired.
+        saved_level = self._override_store.override_level
+        saved_until = self._override_store.override_until
+        if saved_level is not None and saved_until is not None:
+            try:
+                restored_until = datetime.fromisoformat(saved_until)
+                # Make timezone-aware if necessary for comparison with utcnow().
+                if restored_until.tzinfo is None:
+                    restored_until = dt_util.as_utc(restored_until)
+                if restored_until > dt_util.utcnow():
+                    self._manual_override_level = saved_level
+                    self._manual_override_until = restored_until
+                    self._status["manual_override_active"] = True
+                    self._status["manual_override_level"] = saved_level
+                    self._status["manual_override_until"] = restored_until.isoformat()
+                    _LOGGER.info(
+                        "Smart KWL: restored manual override level=%s until=%s",
+                        saved_level,
+                        restored_until.isoformat(),
+                    )
+                else:
+                    # Override expired while HA was offline — clear storage.
+                    await self._override_store.async_clear_override()
+            except (ValueError, TypeError):
+                await self._override_store.async_clear_override()
 
         entities = [self._config(CONF_FAN_ENTITY)]
         entities.extend(self._sensor_entities(CONF_HUMIDITY_CONFIGS))
@@ -249,6 +279,10 @@ class SmartKwlController:
         self._status["manual_override_level"] = level
         self._status["manual_override_until"] = self._manual_override_until.isoformat()
 
+        # Persist so the override survives HA restarts.
+        if self._override_store is not None:
+            await self._override_store.async_save_override(level, self._manual_override_until.isoformat())
+
         # Manual override supersedes temporary external holds.
         self._external_increase_hold_until = None
         self._external_increase_level = None
@@ -316,6 +350,10 @@ class SmartKwlController:
         self._status["manual_override_active"] = False
         self._status["manual_override_level"] = None
         self._status["manual_override_until"] = None
+
+        # Clear persisted override.
+        if self._override_store is not None:
+            await self._override_store.async_clear_override()
 
         # Also clear external hardware-manual hold so cancel fully returns
         # control to automation logic.
@@ -561,6 +599,8 @@ class SmartKwlController:
             self._status["manual_override_level"] = None
             self._status["manual_override_until"] = None
             detail_lines.append("manual_override | active=no | reason=expired")
+            if self._override_store is not None:
+                self.hass.async_create_task(self._override_store.async_clear_override())
 
         self._status["manual_override_active"] = False
         self._status["manual_override_level"] = None
