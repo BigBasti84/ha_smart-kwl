@@ -11,7 +11,7 @@ from typing import Any, Callable
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, State
-from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval
+from homeassistant.helpers.event import async_call_later, async_track_state_change_event, async_track_time_interval
 from homeassistant.util import dt as dt_util
 
 from .const import (
@@ -73,6 +73,7 @@ class SmartKwlController:
         self.entry = entry
         self._unsub_state: CALLBACK_TYPE | None = None
         self._unsub_interval: CALLBACK_TYPE | None = None
+        self._unsub_post_start_check: CALLBACK_TYPE | None = None
         self._last_apply: datetime | None = None
         self._last_level: int | None = None
         self._listeners: list[Callable[[], None]] = []
@@ -157,6 +158,12 @@ class SmartKwlController:
 
         await self._async_recalculate(force=True)
 
+        # Run a second verification shortly after startup/reload to catch
+        # late-restored entity states and enforce target speed if needed.
+        if self._unsub_post_start_check is not None:
+            self._unsub_post_start_check()
+        self._unsub_post_start_check = async_call_later(self.hass, 20, self._async_post_start_check)
+
     async def async_stop(self) -> None:
         """Stop tracking configured entities."""
         if self._unsub_state is not None:
@@ -165,6 +172,14 @@ class SmartKwlController:
         if self._unsub_interval is not None:
             self._unsub_interval()
             self._unsub_interval = None
+        if self._unsub_post_start_check is not None:
+            self._unsub_post_start_check()
+            self._unsub_post_start_check = None
+
+    def _async_post_start_check(self, _now) -> None:
+        """Re-run enforcement check shortly after startup/reload."""
+        self._unsub_post_start_check = None
+        self.hass.async_create_task(self._async_recalculate(force=True))
 
     def add_listener(self, listener: Callable[[], None]) -> Callable[[], None]:
         """Register a callback for state updates used by info entities."""
@@ -455,6 +470,8 @@ class SmartKwlController:
         if observed_level == self._last_level:
             return
 
+        previous_level = self._last_level
+
         if observed_level > self._last_level:
             hold_hours = int(self._config(CONF_MANUAL_INCREASE_HOLD_HOURS, DEFAULT_MANUAL_INCREASE_HOLD_HOURS))
             self._external_increase_level = observed_level
@@ -466,6 +483,13 @@ class SmartKwlController:
                 "manual_external | type=increase | observed_level=%s | hold_until=%s"
                 % (observed_level, self._external_increase_hold_until.isoformat())
             )
+            self._append_change_history_event(
+                now.isoformat(),
+                previous_level,
+                observed_level,
+                "manual_hardware_increase",
+                "observed",
+            )
         else:
             self._external_decrease_level = observed_level
             self._external_decrease_reference_auto_level = auto_level
@@ -475,6 +499,13 @@ class SmartKwlController:
             detail_lines.append(
                 "manual_external | type=decrease | observed_level=%s | base_auto_level=%s"
                 % (observed_level, auto_level)
+            )
+            self._append_change_history_event(
+                now.isoformat(),
+                previous_level,
+                observed_level,
+                "manual_hardware_decrease",
+                "observed",
             )
 
         self._last_level = observed_level
@@ -953,10 +984,36 @@ class SmartKwlController:
 
         change = self._parse_action_change(timestamp, action_line)
         if change is not None:
-            change_history: list[dict[str, str]] = list(self._status.get("change_history", []))
-            change_history.insert(0, change)
-            # Keep the latest 50 level-change events for dashboard display.
-            self._status["change_history"] = change_history[:50]
+            self._append_change_history_event(
+                change["at"],
+                int(change["before_level"]),
+                int(change["after_level"]),
+                change["reason"],
+                change["status"],
+            )
+
+    def _append_change_history_event(
+        self,
+        timestamp: str,
+        before_level: int,
+        after_level: int,
+        reason: str,
+        status: str,
+    ) -> None:
+        """Append a normalized level-change event for dashboard history cards."""
+        change_history: list[dict[str, str]] = list(self._status.get("change_history", []))
+        change_history.insert(
+            0,
+            {
+                "at": timestamp,
+                "before_level": str(before_level),
+                "after_level": str(after_level),
+                "reason": reason,
+                "status": status,
+            },
+        )
+        # Keep the latest 50 level-change events for dashboard display.
+        self._status["change_history"] = change_history[:50]
 
     @staticmethod
     def _parse_action_change(timestamp: str, action_line: str) -> dict[str, str] | None:

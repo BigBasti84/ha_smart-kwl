@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.20] - 2026-05-14
+### Fixed
+- External hardware fan-level changes are now written to `change_history` and visible in Recent Changes
+- Added delayed post-start verification pass after HA restart/integration reload to recheck and enforce expected fan speed once entities settle
+
 ## [0.1.19] - 2026-05-14
 ### Fixed
 - Control loop now enforces fan speed when observed level differs from computed target, even inside check interval
