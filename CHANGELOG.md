@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.22] - 2026-05-14
+### Fixed
+- Diagnostic and filter sensors now restore and retain last valid values across restarts/unavailable source periods to reduce `Unknown` states
+- Dashboard now uses explicit per-entity names so labels stay clean without `Smart KWL` prefix regardless of entity registry caching
+
 ## [0.1.21] - 2026-05-14
 ### Changed
 - Reduced README/HACS logo display size for cleaner integration details page

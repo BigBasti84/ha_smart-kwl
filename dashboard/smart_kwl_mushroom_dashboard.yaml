@@ -11,36 +11,54 @@ views:
       - type: entities
         title: Status
         entities:
-          - binary_sensor.ventilation_on
-          - binary_sensor.summer_mode_active
-          - binary_sensor.night_mode_active
-          - binary_sensor.smart_kwl_manual_override_active
+          - entity: binary_sensor.ventilation_on
+            name: Ventilation On
+          - entity: binary_sensor.summer_mode_active
+            name: Summer Mode Active
+          - entity: binary_sensor.night_mode_active
+            name: Night Mode Active
+          - entity: binary_sensor.smart_kwl_manual_override_active
+            name: Manual Override Active
 
       - type: entities
         title: Manual Override
         entities:
-          - number.smart_kwl_manual_override_level
-          - number.smart_kwl_manual_override_duration
-          - button.smart_kwl_apply_manual_override
-          - button.smart_kwl_cancel_manual_override
-          - sensor.smart_kwl_manual_override_until
-          - sensor.smart_kwl_external_manual_hold
+          - entity: number.smart_kwl_manual_override_level
+            name: Manual Override Level
+          - entity: number.smart_kwl_manual_override_duration
+            name: Manual Override Duration
+          - entity: button.smart_kwl_apply_manual_override
+            name: Apply Manual Override
+          - entity: button.smart_kwl_cancel_manual_override
+            name: Cancel Manual Override
+          - entity: sensor.smart_kwl_manual_override_until
+            name: Manual Override Until
+          - entity: sensor.smart_kwl_external_manual_hold
+            name: External Manual Hold
 
       - type: entities
         title: Current Values
         entities:
-          - sensor.target_fan_level
-          - sensor.target_fan_percentage
-          - sensor.humidity_combined
-          - sensor.co2_combined
+          - entity: sensor.target_fan_level
+            name: Target Fan Level
+          - entity: sensor.target_fan_percentage
+            name: Target Fan Percentage
+          - entity: sensor.humidity_combined
+            name: Humidity Combined
+          - entity: sensor.co2_combined
+            name: CO2 Combined
 
       - type: entities
         title: Thresholds
         entities:
-          - sensor.humidity_low
-          - sensor.humidity_high
-          - sensor.co2_low
-          - sensor.co2_high
+          - entity: sensor.humidity_low
+            name: Humidity Low
+          - entity: sensor.humidity_high
+            name: Humidity High
+          - entity: sensor.co2_low
+            name: CO2 Low
+          - entity: sensor.co2_high
+            name: CO2 High
 
       - type: heading
         heading: Temperatures
@@ -48,10 +66,14 @@ views:
       - type: entities
         title: Temperature Sensors
         entities:
-          - sensor.incoming_temperature
-          - sensor.outgoing_temperature
-          - sensor.outside_temperature
-          - sensor.exhaust_temperature
+          - entity: sensor.incoming_temperature
+            name: Incoming Temperature
+          - entity: sensor.outgoing_temperature
+            name: Outgoing Temperature
+          - entity: sensor.outside_temperature
+            name: Outside Temperature
+          - entity: sensor.exhaust_temperature
+            name: Exhaust Temperature
 
       - type: history-graph
         title: Temperature History (24h)
@@ -76,12 +98,18 @@ views:
       - type: entities
         title: Filter Status
         entities:
-          - sensor.smart_kwl_filter_cleaning_status
-          - sensor.smart_kwl_filter_days_since_cleaning
-          - sensor.smart_kwl_filter_days_remaining
-          - sensor.smart_kwl_filter_months_remaining
-          - sensor.smart_kwl_filter_last_cleaned
-          - button.smart_kwl_filters_cleaned
+          - entity: sensor.smart_kwl_filter_cleaning_status
+            name: Filter Cleaning Status
+          - entity: sensor.smart_kwl_filter_days_since_cleaning
+            name: Filter Days Since Cleaning
+          - entity: sensor.smart_kwl_filter_days_remaining
+            name: Filter Days Remaining
+          - entity: sensor.smart_kwl_filter_months_remaining
+            name: Filter Months Remaining
+          - entity: sensor.smart_kwl_filter_last_cleaned
+            name: Filter Last Cleaned
+          - entity: button.smart_kwl_filters_cleaned
+            name: Filters Cleaned
 
       - type: heading
         heading: Check Log
@@ -89,7 +117,8 @@ views:
       - type: entities
         title: Last Check
         entities:
-          - sensor.check_log
+          - entity: sensor.check_log
+            name: Last Check
 
       - type: markdown
         title: Recent Changes (Last 5)

@@ -121,12 +121,23 @@ class SmartKwlDiagnosticSensor(SmartKwlBaseEntity, SensorEntity):
     ) -> None:
         super().__init__(controller, entry, name, unique_suffix)
         self._status_key = status_key
+        self._last_value: Any = None
         if unit is not None:
             self._attr_native_unit_of_measurement = unit
 
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        state = await self.async_get_last_state()
+        if state is not None and state.state not in {"unknown", "unavailable", "none"}:
+            self._last_value = state.state
+
     @property
     def native_value(self) -> Any:
-        return self._controller.status.get(self._status_key)
+        value = self._controller.status.get(self._status_key)
+        if value is None:
+            return self._last_value
+        self._last_value = value
+        return value
 
 
 class SmartKwlCheckLogSensor(SmartKwlBaseEntity, SensorEntity):
@@ -195,9 +206,20 @@ class SmartKwlFilterSensor(SmartKwlBaseEntity, SensorEntity):
     ) -> None:
         super().__init__(controller, entry, name, unique_suffix)
         self._status_key = status_key
+        self._last_value: Any = None
         if unit is not None:
             self._attr_native_unit_of_measurement = unit
 
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        state = await self.async_get_last_state()
+        if state is not None and state.state not in {"unknown", "unavailable", "none"}:
+            self._last_value = state.state
+
     @property
     def native_value(self) -> Any:
-        return self._controller.status.get(self._status_key)
+        value = self._controller.status.get(self._status_key)
+        if value is None:
+            return self._last_value
+        self._last_value = value
+        return value
