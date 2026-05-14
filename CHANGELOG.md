@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.25] - 2026-05-14
+### Fixed
+- Manual Override card fully rewritten using native HA card types only (no `custom:button-card` required)
+- Fan Speed and Duration use standard number sliders; Start/Cancel use native `type: button` entity cards
+- Progress bar rendered as a Unicode block-character bar inside a `conditional` + `markdown` card using Jinja2 templates
+
 ## [0.1.24] - 2026-05-14
 ### Fixed
 - Manual Override card: removed `button_card_templates` and `variables` — `service_data.value` does not support JS template syntax in button-card; each button now hardcodes its own value directly, fixing "Configuration error" on all selector tiles
