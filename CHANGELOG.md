@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.23] - 2026-05-14
+### Changed
+- Manual Override dashboard card redesigned with graphical controls:
+  - Fan speed selector: 8 clickable radio-button tiles (1–8), highlighted in blue when selected
+  - Duration selector: 8 clickable radio-button tiles (1h–8h), highlighted in green when selected
+  - Start / Cancel action buttons with live conditional styling (green/active vs greyed-out)
+  - Animated progress bar with remaining-time countdown when a timed override is active
+  - All controls are visually dimmed when any override (timed or hardware) is active
+- Requires `custom:button-card` (HACS) for the new card to render correctly
+
 ## [0.1.22] - 2026-05-14
 ### Fixed
 - Diagnostic and filter sensors now restore and retain last valid values across restarts/unavailable source periods to reduce `Unknown` states

@@ -1,4 +1,78 @@
 title: Smart KWL
+
+button_card_templates:
+  kwl_speed_btn:
+    show_icon: false
+    show_state: false
+    entity: number.smart_kwl_manual_override_level
+    tap_action:
+      action: call-service
+      service: number.set_value
+      service_data:
+        entity_id: number.smart_kwl_manual_override_level
+        value: "[[[ return variables.val; ]]]"
+    styles:
+      card:
+        - border-radius: 6px
+        - padding: 8px 2px
+        - font-size: 14px
+        - font-weight: bold
+        - background-color: >
+            [[[
+              const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+              const sel = Math.round(parseFloat(entity.state)) === variables.val;
+              if (ov) return sel ? 'rgba(33,150,243,0.35)' : 'rgba(128,128,128,0.08)';
+              return sel ? '#2196F3' : 'rgba(128,128,128,0.18)';
+            ]]]
+        - color: >
+            [[[
+              const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+              const sel = Math.round(parseFloat(entity.state)) === variables.val;
+              if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+              return sel ? '#ffffff' : 'var(--secondary-text-color)';
+            ]]]
+      name:
+        - font-size: 14px
+        - font-weight: bold
+
+  kwl_duration_btn:
+    show_icon: false
+    show_state: false
+    entity: number.smart_kwl_manual_override_duration
+    tap_action:
+      action: call-service
+      service: number.set_value
+      service_data:
+        entity_id: number.smart_kwl_manual_override_duration
+        value: "[[[ return variables.val; ]]]"
+    styles:
+      card:
+        - border-radius: 6px
+        - padding: 8px 2px
+        - font-size: 14px
+        - font-weight: bold
+        - background-color: >
+            [[[
+              const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+              const sel = Math.round(parseFloat(entity.state)) === variables.val;
+              if (ov) return sel ? 'rgba(76,175,80,0.35)' : 'rgba(128,128,128,0.08)';
+              return sel ? '#4CAF50' : 'rgba(128,128,128,0.18)';
+            ]]]
+        - color: >
+            [[[
+              const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+              const sel = Math.round(parseFloat(entity.state)) === variables.val;
+              if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+              return sel ? '#ffffff' : 'var(--secondary-text-color)';
+            ]]]
+      name:
+        - font-size: 14px
+        - font-weight: bold
+
 views:
   - title: Overview
     path: smart-kwl
@@ -20,21 +94,212 @@ views:
           - entity: binary_sensor.smart_kwl_manual_override_active
             name: Manual Override Active
 
-      - type: entities
-        title: Manual Override
-        entities:
-          - entity: number.smart_kwl_manual_override_level
-            name: Manual Override Level
-          - entity: number.smart_kwl_manual_override_duration
-            name: Manual Override Duration
-          - entity: button.smart_kwl_apply_manual_override
-            name: Apply Manual Override
-          - entity: button.smart_kwl_cancel_manual_override
-            name: Cancel Manual Override
-          - entity: sensor.smart_kwl_manual_override_until
-            name: Manual Override Until
-          - entity: sensor.smart_kwl_external_manual_hold
-            name: External Manual Hold
+      - type: vertical-stack
+        cards:
+          - type: markdown
+            content: "## Manual Override"
+
+          - type: markdown
+            content: "**Fan Speed**"
+
+          - type: horizontal-stack
+            cards:
+              - type: custom:button-card
+                template: kwl_speed_btn
+                name: "1"
+                variables:
+                  val: 1
+              - type: custom:button-card
+                template: kwl_speed_btn
+                name: "2"
+                variables:
+                  val: 2
+              - type: custom:button-card
+                template: kwl_speed_btn
+                name: "3"
+                variables:
+                  val: 3
+              - type: custom:button-card
+                template: kwl_speed_btn
+                name: "4"
+                variables:
+                  val: 4
+              - type: custom:button-card
+                template: kwl_speed_btn
+                name: "5"
+                variables:
+                  val: 5
+              - type: custom:button-card
+                template: kwl_speed_btn
+                name: "6"
+                variables:
+                  val: 6
+              - type: custom:button-card
+                template: kwl_speed_btn
+                name: "7"
+                variables:
+                  val: 7
+              - type: custom:button-card
+                template: kwl_speed_btn
+                name: "8"
+                variables:
+                  val: 8
+
+          - type: markdown
+            content: "**Duration (hours)**"
+
+          - type: horizontal-stack
+            cards:
+              - type: custom:button-card
+                template: kwl_duration_btn
+                name: "1h"
+                variables:
+                  val: 1
+              - type: custom:button-card
+                template: kwl_duration_btn
+                name: "2h"
+                variables:
+                  val: 2
+              - type: custom:button-card
+                template: kwl_duration_btn
+                name: "3h"
+                variables:
+                  val: 3
+              - type: custom:button-card
+                template: kwl_duration_btn
+                name: "4h"
+                variables:
+                  val: 4
+              - type: custom:button-card
+                template: kwl_duration_btn
+                name: "5h"
+                variables:
+                  val: 5
+              - type: custom:button-card
+                template: kwl_duration_btn
+                name: "6h"
+                variables:
+                  val: 6
+              - type: custom:button-card
+                template: kwl_duration_btn
+                name: "7h"
+                variables:
+                  val: 7
+              - type: custom:button-card
+                template: kwl_duration_btn
+                name: "8h"
+                variables:
+                  val: 8
+
+          - type: horizontal-stack
+            cards:
+              - type: custom:button-card
+                name: "▶  Start"
+                show_icon: false
+                tap_action:
+                  action: call-service
+                  service: button.press
+                  service_data:
+                    entity_id: button.smart_kwl_apply_manual_override
+                styles:
+                  card:
+                    - border-radius: 8px
+                    - padding: 14px 8px
+                    - font-size: 15px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          return ov ? 'rgba(128,128,128,0.1)' : '#4CAF50';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          return ov ? 'rgba(255,255,255,0.25)' : '#ffffff';
+                        ]]]
+                  name:
+                    - font-size: 15px
+                    - font-weight: bold
+              - type: custom:button-card
+                name: "✕  Cancel"
+                show_icon: false
+                tap_action:
+                  action: call-service
+                  service: button.press
+                  service_data:
+                    entity_id: button.smart_kwl_cancel_manual_override
+                styles:
+                  card:
+                    - border-radius: 8px
+                    - padding: 14px 8px
+                    - font-size: 15px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          return ov ? '#F44336' : 'rgba(128,128,128,0.1)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          return ov ? '#ffffff' : 'rgba(255,255,255,0.25)';
+                        ]]]
+                  name:
+                    - font-size: 15px
+                    - font-weight: bold
+
+          - type: conditional
+            conditions:
+              - entity: binary_sensor.smart_kwl_manual_override_active
+                state: "on"
+            card:
+              type: custom:button-card
+              entity: sensor.smart_kwl_manual_override_until
+              show_icon: false
+              show_state: false
+              name: >
+                [[[
+                  const until = entity.state;
+                  if (!until || until === 'unknown' || until === 'unavailable' || until === 'None') {
+                    return 'Override active';
+                  }
+                  const end = new Date(until);
+                  const now = new Date();
+                  const ms = Math.max(0, end - now);
+                  const h = Math.floor(ms / 3600000);
+                  const m = Math.floor((ms % 3600000) / 60000);
+                  return (h > 0 ? h + 'h ' : '') + m + 'm remaining';
+                ]]]
+              styles:
+                card:
+                  - border-radius: 8px
+                  - padding: 14px 16px
+                  - font-size: 13px
+                  - font-weight: bold
+                  - color: "#ffffff"
+                  - text-align: left
+                  - background: >
+                      [[[
+                        const until = entity.state;
+                        if (!until || until === 'unknown' || until === 'unavailable' || until === 'None') {
+                          return 'rgba(33,150,243,0.5)';
+                        }
+                        const end = new Date(until);
+                        const now = new Date();
+                        const ms = Math.max(0, end - now);
+                        const dh = parseFloat(states['number.smart_kwl_manual_override_duration'].state) || 1;
+                        const total = dh * 3600000;
+                        const pct = Math.round(Math.min(100, (ms / total) * 100));
+                        return 'linear-gradient(to right, rgba(33,150,243,0.85) ' + pct + '%, rgba(128,128,128,0.15) ' + pct + '%)';
+                      ]]]
+                name:
+                  - font-size: 13px
+                  - font-weight: bold
+                  - color: "#ffffff"
 
       - type: entities
         title: Current Values
