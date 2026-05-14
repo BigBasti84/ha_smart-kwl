@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.27] - 2026-05-14
+### Changed
+- Manual Override card now displays graphical radio-button tiles for fan speed and duration selection
+- Speed: 4×2 grid of tiles (1–8), selected tile highlighted in blue with blue border
+- Duration: 4×2 grid of tiles (1h–8h), selected tile highlighted in green with green border
+- All controls dimmed when an override is active (read-only visual feedback)
+- **Requires**: `button-card` custom card from HACS (Frontend)
+
 ## [0.1.26] - 2026-05-14
 ### Fixed
 - Manual override state now persists across HA restarts and integration reloads
