@@ -1,78 +1,4 @@
 title: Smart KWL
-
-button_card_templates:
-  kwl_speed_btn:
-    show_icon: false
-    show_state: false
-    entity: number.smart_kwl_manual_override_level
-    tap_action:
-      action: call-service
-      service: number.set_value
-      service_data:
-        entity_id: number.smart_kwl_manual_override_level
-        value: "[[[ return variables.val; ]]]"
-    styles:
-      card:
-        - border-radius: 6px
-        - padding: 8px 2px
-        - font-size: 14px
-        - font-weight: bold
-        - background-color: >
-            [[[
-              const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
-              const sel = Math.round(parseFloat(entity.state)) === variables.val;
-              if (ov) return sel ? 'rgba(33,150,243,0.35)' : 'rgba(128,128,128,0.08)';
-              return sel ? '#2196F3' : 'rgba(128,128,128,0.18)';
-            ]]]
-        - color: >
-            [[[
-              const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
-              const sel = Math.round(parseFloat(entity.state)) === variables.val;
-              if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
-              return sel ? '#ffffff' : 'var(--secondary-text-color)';
-            ]]]
-      name:
-        - font-size: 14px
-        - font-weight: bold
-
-  kwl_duration_btn:
-    show_icon: false
-    show_state: false
-    entity: number.smart_kwl_manual_override_duration
-    tap_action:
-      action: call-service
-      service: number.set_value
-      service_data:
-        entity_id: number.smart_kwl_manual_override_duration
-        value: "[[[ return variables.val; ]]]"
-    styles:
-      card:
-        - border-radius: 6px
-        - padding: 8px 2px
-        - font-size: 14px
-        - font-weight: bold
-        - background-color: >
-            [[[
-              const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
-              const sel = Math.round(parseFloat(entity.state)) === variables.val;
-              if (ov) return sel ? 'rgba(76,175,80,0.35)' : 'rgba(128,128,128,0.08)';
-              return sel ? '#4CAF50' : 'rgba(128,128,128,0.18)';
-            ]]]
-        - color: >
-            [[[
-              const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
-              const sel = Math.round(parseFloat(entity.state)) === variables.val;
-              if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
-              return sel ? '#ffffff' : 'var(--secondary-text-color)';
-            ]]]
-      name:
-        - font-size: 14px
-        - font-weight: bold
-
 views:
   - title: Overview
     path: smart-kwl
@@ -105,45 +31,293 @@ views:
           - type: horizontal-stack
             cards:
               - type: custom:button-card
-                template: kwl_speed_btn
+                entity: number.smart_kwl_manual_override_level
                 name: "1"
-                variables:
-                  val: 1
+                show_icon: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  service_data:
+                    entity_id: number.smart_kwl_manual_override_level
+                    value: 1
+                styles:
+                  card:
+                    - border-radius: 6px
+                    - padding: 8px 2px
+                    - font-size: 14px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 1;
+                          if (ov) return sel ? 'rgba(33,150,243,0.35)' : 'rgba(128,128,128,0.08)';
+                          return sel ? '#2196F3' : 'rgba(128,128,128,0.18)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 1;
+                          if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+                          return sel ? '#ffffff' : 'var(--secondary-text-color)';
+                        ]]]
+                  name:
+                    - font-size: 14px
+                    - font-weight: bold
               - type: custom:button-card
-                template: kwl_speed_btn
+                entity: number.smart_kwl_manual_override_level
                 name: "2"
-                variables:
-                  val: 2
+                show_icon: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  service_data:
+                    entity_id: number.smart_kwl_manual_override_level
+                    value: 2
+                styles:
+                  card:
+                    - border-radius: 6px
+                    - padding: 8px 2px
+                    - font-size: 14px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 2;
+                          if (ov) return sel ? 'rgba(33,150,243,0.35)' : 'rgba(128,128,128,0.08)';
+                          return sel ? '#2196F3' : 'rgba(128,128,128,0.18)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 2;
+                          if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+                          return sel ? '#ffffff' : 'var(--secondary-text-color)';
+                        ]]]
+                  name:
+                    - font-size: 14px
+                    - font-weight: bold
               - type: custom:button-card
-                template: kwl_speed_btn
+                entity: number.smart_kwl_manual_override_level
                 name: "3"
-                variables:
-                  val: 3
+                show_icon: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  service_data:
+                    entity_id: number.smart_kwl_manual_override_level
+                    value: 3
+                styles:
+                  card:
+                    - border-radius: 6px
+                    - padding: 8px 2px
+                    - font-size: 14px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 3;
+                          if (ov) return sel ? 'rgba(33,150,243,0.35)' : 'rgba(128,128,128,0.08)';
+                          return sel ? '#2196F3' : 'rgba(128,128,128,0.18)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 3;
+                          if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+                          return sel ? '#ffffff' : 'var(--secondary-text-color)';
+                        ]]]
+                  name:
+                    - font-size: 14px
+                    - font-weight: bold
               - type: custom:button-card
-                template: kwl_speed_btn
+                entity: number.smart_kwl_manual_override_level
                 name: "4"
-                variables:
-                  val: 4
+                show_icon: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  service_data:
+                    entity_id: number.smart_kwl_manual_override_level
+                    value: 4
+                styles:
+                  card:
+                    - border-radius: 6px
+                    - padding: 8px 2px
+                    - font-size: 14px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 4;
+                          if (ov) return sel ? 'rgba(33,150,243,0.35)' : 'rgba(128,128,128,0.08)';
+                          return sel ? '#2196F3' : 'rgba(128,128,128,0.18)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 4;
+                          if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+                          return sel ? '#ffffff' : 'var(--secondary-text-color)';
+                        ]]]
+                  name:
+                    - font-size: 14px
+                    - font-weight: bold
               - type: custom:button-card
-                template: kwl_speed_btn
+                entity: number.smart_kwl_manual_override_level
                 name: "5"
-                variables:
-                  val: 5
+                show_icon: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  service_data:
+                    entity_id: number.smart_kwl_manual_override_level
+                    value: 5
+                styles:
+                  card:
+                    - border-radius: 6px
+                    - padding: 8px 2px
+                    - font-size: 14px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 5;
+                          if (ov) return sel ? 'rgba(33,150,243,0.35)' : 'rgba(128,128,128,0.08)';
+                          return sel ? '#2196F3' : 'rgba(128,128,128,0.18)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 5;
+                          if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+                          return sel ? '#ffffff' : 'var(--secondary-text-color)';
+                        ]]]
+                  name:
+                    - font-size: 14px
+                    - font-weight: bold
               - type: custom:button-card
-                template: kwl_speed_btn
+                entity: number.smart_kwl_manual_override_level
                 name: "6"
-                variables:
-                  val: 6
+                show_icon: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  service_data:
+                    entity_id: number.smart_kwl_manual_override_level
+                    value: 6
+                styles:
+                  card:
+                    - border-radius: 6px
+                    - padding: 8px 2px
+                    - font-size: 14px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 6;
+                          if (ov) return sel ? 'rgba(33,150,243,0.35)' : 'rgba(128,128,128,0.08)';
+                          return sel ? '#2196F3' : 'rgba(128,128,128,0.18)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 6;
+                          if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+                          return sel ? '#ffffff' : 'var(--secondary-text-color)';
+                        ]]]
+                  name:
+                    - font-size: 14px
+                    - font-weight: bold
               - type: custom:button-card
-                template: kwl_speed_btn
+                entity: number.smart_kwl_manual_override_level
                 name: "7"
-                variables:
-                  val: 7
+                show_icon: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  service_data:
+                    entity_id: number.smart_kwl_manual_override_level
+                    value: 7
+                styles:
+                  card:
+                    - border-radius: 6px
+                    - padding: 8px 2px
+                    - font-size: 14px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 7;
+                          if (ov) return sel ? 'rgba(33,150,243,0.35)' : 'rgba(128,128,128,0.08)';
+                          return sel ? '#2196F3' : 'rgba(128,128,128,0.18)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 7;
+                          if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+                          return sel ? '#ffffff' : 'var(--secondary-text-color)';
+                        ]]]
+                  name:
+                    - font-size: 14px
+                    - font-weight: bold
               - type: custom:button-card
-                template: kwl_speed_btn
+                entity: number.smart_kwl_manual_override_level
                 name: "8"
-                variables:
-                  val: 8
+                show_icon: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  service_data:
+                    entity_id: number.smart_kwl_manual_override_level
+                    value: 8
+                styles:
+                  card:
+                    - border-radius: 6px
+                    - padding: 8px 2px
+                    - font-size: 14px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 8;
+                          if (ov) return sel ? 'rgba(33,150,243,0.35)' : 'rgba(128,128,128,0.08)';
+                          return sel ? '#2196F3' : 'rgba(128,128,128,0.18)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 8;
+                          if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+                          return sel ? '#ffffff' : 'var(--secondary-text-color)';
+                        ]]]
+                  name:
+                    - font-size: 14px
+                    - font-weight: bold
 
           - type: markdown
             content: "**Duration (hours)**"
@@ -151,50 +325,298 @@ views:
           - type: horizontal-stack
             cards:
               - type: custom:button-card
-                template: kwl_duration_btn
+                entity: number.smart_kwl_manual_override_duration
                 name: "1h"
-                variables:
-                  val: 1
+                show_icon: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  service_data:
+                    entity_id: number.smart_kwl_manual_override_duration
+                    value: 1
+                styles:
+                  card:
+                    - border-radius: 6px
+                    - padding: 8px 2px
+                    - font-size: 14px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 1;
+                          if (ov) return sel ? 'rgba(76,175,80,0.35)' : 'rgba(128,128,128,0.08)';
+                          return sel ? '#4CAF50' : 'rgba(128,128,128,0.18)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 1;
+                          if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+                          return sel ? '#ffffff' : 'var(--secondary-text-color)';
+                        ]]]
+                  name:
+                    - font-size: 14px
+                    - font-weight: bold
               - type: custom:button-card
-                template: kwl_duration_btn
+                entity: number.smart_kwl_manual_override_duration
                 name: "2h"
-                variables:
-                  val: 2
+                show_icon: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  service_data:
+                    entity_id: number.smart_kwl_manual_override_duration
+                    value: 2
+                styles:
+                  card:
+                    - border-radius: 6px
+                    - padding: 8px 2px
+                    - font-size: 14px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 2;
+                          if (ov) return sel ? 'rgba(76,175,80,0.35)' : 'rgba(128,128,128,0.08)';
+                          return sel ? '#4CAF50' : 'rgba(128,128,128,0.18)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 2;
+                          if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+                          return sel ? '#ffffff' : 'var(--secondary-text-color)';
+                        ]]]
+                  name:
+                    - font-size: 14px
+                    - font-weight: bold
               - type: custom:button-card
-                template: kwl_duration_btn
+                entity: number.smart_kwl_manual_override_duration
                 name: "3h"
-                variables:
-                  val: 3
+                show_icon: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  service_data:
+                    entity_id: number.smart_kwl_manual_override_duration
+                    value: 3
+                styles:
+                  card:
+                    - border-radius: 6px
+                    - padding: 8px 2px
+                    - font-size: 14px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 3;
+                          if (ov) return sel ? 'rgba(76,175,80,0.35)' : 'rgba(128,128,128,0.08)';
+                          return sel ? '#4CAF50' : 'rgba(128,128,128,0.18)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 3;
+                          if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+                          return sel ? '#ffffff' : 'var(--secondary-text-color)';
+                        ]]]
+                  name:
+                    - font-size: 14px
+                    - font-weight: bold
               - type: custom:button-card
-                template: kwl_duration_btn
+                entity: number.smart_kwl_manual_override_duration
                 name: "4h"
-                variables:
-                  val: 4
+                show_icon: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  service_data:
+                    entity_id: number.smart_kwl_manual_override_duration
+                    value: 4
+                styles:
+                  card:
+                    - border-radius: 6px
+                    - padding: 8px 2px
+                    - font-size: 14px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 4;
+                          if (ov) return sel ? 'rgba(76,175,80,0.35)' : 'rgba(128,128,128,0.08)';
+                          return sel ? '#4CAF50' : 'rgba(128,128,128,0.18)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 4;
+                          if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+                          return sel ? '#ffffff' : 'var(--secondary-text-color)';
+                        ]]]
+                  name:
+                    - font-size: 14px
+                    - font-weight: bold
               - type: custom:button-card
-                template: kwl_duration_btn
+                entity: number.smart_kwl_manual_override_duration
                 name: "5h"
-                variables:
-                  val: 5
+                show_icon: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  service_data:
+                    entity_id: number.smart_kwl_manual_override_duration
+                    value: 5
+                styles:
+                  card:
+                    - border-radius: 6px
+                    - padding: 8px 2px
+                    - font-size: 14px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 5;
+                          if (ov) return sel ? 'rgba(76,175,80,0.35)' : 'rgba(128,128,128,0.08)';
+                          return sel ? '#4CAF50' : 'rgba(128,128,128,0.18)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 5;
+                          if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+                          return sel ? '#ffffff' : 'var(--secondary-text-color)';
+                        ]]]
+                  name:
+                    - font-size: 14px
+                    - font-weight: bold
               - type: custom:button-card
-                template: kwl_duration_btn
+                entity: number.smart_kwl_manual_override_duration
                 name: "6h"
-                variables:
-                  val: 6
+                show_icon: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  service_data:
+                    entity_id: number.smart_kwl_manual_override_duration
+                    value: 6
+                styles:
+                  card:
+                    - border-radius: 6px
+                    - padding: 8px 2px
+                    - font-size: 14px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 6;
+                          if (ov) return sel ? 'rgba(76,175,80,0.35)' : 'rgba(128,128,128,0.08)';
+                          return sel ? '#4CAF50' : 'rgba(128,128,128,0.18)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 6;
+                          if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+                          return sel ? '#ffffff' : 'var(--secondary-text-color)';
+                        ]]]
+                  name:
+                    - font-size: 14px
+                    - font-weight: bold
               - type: custom:button-card
-                template: kwl_duration_btn
+                entity: number.smart_kwl_manual_override_duration
                 name: "7h"
-                variables:
-                  val: 7
+                show_icon: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  service_data:
+                    entity_id: number.smart_kwl_manual_override_duration
+                    value: 7
+                styles:
+                  card:
+                    - border-radius: 6px
+                    - padding: 8px 2px
+                    - font-size: 14px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 7;
+                          if (ov) return sel ? 'rgba(76,175,80,0.35)' : 'rgba(128,128,128,0.08)';
+                          return sel ? '#4CAF50' : 'rgba(128,128,128,0.18)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 7;
+                          if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+                          return sel ? '#ffffff' : 'var(--secondary-text-color)';
+                        ]]]
+                  name:
+                    - font-size: 14px
+                    - font-weight: bold
               - type: custom:button-card
-                template: kwl_duration_btn
+                entity: number.smart_kwl_manual_override_duration
                 name: "8h"
-                variables:
-                  val: 8
+                show_icon: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  service_data:
+                    entity_id: number.smart_kwl_manual_override_duration
+                    value: 8
+                styles:
+                  card:
+                    - border-radius: 6px
+                    - padding: 8px 2px
+                    - font-size: 14px
+                    - font-weight: bold
+                    - background-color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 8;
+                          if (ov) return sel ? 'rgba(76,175,80,0.35)' : 'rgba(128,128,128,0.08)';
+                          return sel ? '#4CAF50' : 'rgba(128,128,128,0.18)';
+                        ]]]
+                    - color: >
+                        [[[
+                          const ov = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
+                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const sel = Math.round(parseFloat(entity.state)) === 8;
+                          if (ov) return sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+                          return sel ? '#ffffff' : 'var(--secondary-text-color)';
+                        ]]]
+                  name:
+                    - font-size: 14px
+                    - font-weight: bold
 
           - type: horizontal-stack
             cards:
               - type: custom:button-card
-                name: "▶  Start"
+                name: "\u25b6  Start"
                 show_icon: false
                 tap_action:
                   action: call-service
@@ -223,7 +645,7 @@ views:
                     - font-size: 15px
                     - font-weight: bold
               - type: custom:button-card
-                name: "✕  Cancel"
+                name: "\u2715  Cancel"
                 show_icon: false
                 tap_action:
                   action: call-service

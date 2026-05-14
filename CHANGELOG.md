@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.24] - 2026-05-14
+### Fixed
+- Manual Override card: removed `button_card_templates` and `variables` — `service_data.value` does not support JS template syntax in button-card; each button now hardcodes its own value directly, fixing "Configuration error" on all selector tiles
+
 ## [0.1.23] - 2026-05-14
 ### Changed
 - Manual Override dashboard card redesigned with graphical controls:
