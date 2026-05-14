@@ -260,7 +260,7 @@ class SmartKwlController:
         self._status["last_apply"] = now.isoformat()
         if success:
             self._last_apply = now
-            self._last_level = level
+            self._last_level = after_level if after_level is not None else level
             self._status["last_error"] = None
             self._append_check_run(
                 [
@@ -405,7 +405,7 @@ class SmartKwlController:
         self._status["last_apply_success"] = success
         self._status["last_apply"] = dt_util.utcnow().isoformat()
         if success:
-            self._last_level = target_level
+            self._last_level = after_level if after_level is not None else target_level
             self._status["last_error"] = None
             self._append_check_run(
                 ["manual_set | target_level=%s | target_percentage=%s" % (target_level, decision.percentage)],
@@ -613,8 +613,21 @@ class SmartKwlController:
         self._status["target_percentage"] = decision.percentage
         self._status["last_reason"] = decision.reason
 
+        # Compare computed target with currently observed fan level.
+        actual_matches_target = before_level is not None and before_level == decision.level
+        if not actual_matches_target:
+            evaluation.detail_lines.append(
+                "sync_check | expected_level=%s | observed_level=%s | action=force_apply"
+                % (decision.level, self._fmt_level(before_level))
+            )
+
         interval = timedelta(seconds=int(self._config(CONF_CHECK_INTERVAL, 60)))
-        if not force and self._last_apply is not None and now - self._last_apply < interval:
+        if (
+            not force
+            and actual_matches_target
+            and self._last_apply is not None
+            and now - self._last_apply < interval
+        ):
             after_percentage = self._fan_percentage(fan_entity)
             after_level = self._percentage_to_level(after_percentage, int(self._config(CONF_MAX_FAN_LEVEL, 8)))
             self._append_check_run(
@@ -631,7 +644,7 @@ class SmartKwlController:
             self._notify()
             return
 
-        if self._last_level == decision.level and not force:
+        if self._last_level == decision.level and actual_matches_target and not force:
             after_percentage = self._fan_percentage(fan_entity)
             after_level = self._percentage_to_level(after_percentage, int(self._config(CONF_MAX_FAN_LEVEL, 8)))
             self._append_check_run(
@@ -655,7 +668,7 @@ class SmartKwlController:
         self._status["last_apply"] = now.isoformat()
         self._last_apply = now
         if success:
-            self._last_level = decision.level
+            self._last_level = after_level if after_level is not None else decision.level
             self._status["last_error"] = None
             self._append_check_run(
                 evaluation.detail_lines,

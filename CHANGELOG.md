@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.19] - 2026-05-14
+### Fixed
+- Control loop now enforces fan speed when observed level differs from computed target, even inside check interval
+- `unchanged` and `skipped_interval` paths now require actual level to already match target
+- Improved tracking of last applied level using verified observed level after writes
+- Added `sync_check` trace lines in check details for expected vs observed mismatch diagnostics
+
 ## [0.1.18] - 2026-05-13
 ### Changed
 - Filter lifetime now derives from a configured sensor entity (`filter_lifetime_entity`) that reports months remaining
