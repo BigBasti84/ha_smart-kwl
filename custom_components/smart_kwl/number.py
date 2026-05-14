@@ -31,7 +31,7 @@ async def async_setup_entry(
 class SmartKwlBaseNumber(RestoreEntity, NumberEntity):
     """Base number entity that follows controller updates."""
 
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False
 
     def __init__(self, controller: SmartKwlController, entry: ConfigEntry, name: str, unique_suffix: str) -> None:
         self._controller = controller

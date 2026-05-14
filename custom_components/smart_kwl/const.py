@@ -57,6 +57,7 @@ DEFAULT_NIGHT_SUMMER_FAN_LEVEL = 4
 DEFAULT_CHECK_INTERVAL = 60
 DEFAULT_MANUAL_INCREASE_HOLD_HOURS = 2
 DEFAULT_MANUAL_OVERRIDE_DEFAULT_HOURS = 2
+DEFAULT_FILTER_LIFETIME_ENTITY = "sensor.vallox_rs485_ventilation_ventilation_service_counter"
 
 # Filter maintenance
 FILTER_CLEAN_INTERVAL_DAYS = 60   # warn after 1 month (30d), red after 2 months (60d)

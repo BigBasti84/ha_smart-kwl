@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.21] - 2026-05-14
+### Changed
+- Reduced README/HACS logo display size for cleaner integration details page
+- Re-enabled manual override level and duration controls on the dashboard
+- Removed redundant "Smart KWL" label prefix from entity names in dashboard cards
+- Filter lifetime source now falls back to `sensor.vallox_rs485_ventilation_ventilation_service_counter` if not explicitly configured
+- `Filter Last Cleaned` is now formatted as `DD-MM-YYYY`
+
 ## [0.1.20] - 2026-05-14
 ### Fixed
 - External hardware fan-level changes are now written to `change_history` and visible in Recent Changes

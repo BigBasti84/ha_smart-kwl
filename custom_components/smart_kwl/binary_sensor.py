@@ -33,7 +33,7 @@ async def async_setup_entry(
 class SmartKwlVentilationState(BinarySensorEntity):
     """Binary sensor showing if ventilation is currently on."""
 
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False
     _attr_name = "Ventilation On"
 
     def __init__(self, controller: SmartKwlController, entry: ConfigEntry) -> None:
@@ -72,7 +72,7 @@ class SmartKwlVentilationState(BinarySensorEntity):
 class SmartKwlModeState(BinarySensorEntity):
     """Binary sensor exposing controller mode state flags."""
 
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False
 
     def __init__(self, controller: SmartKwlController, entry: ConfigEntry, name: str, unique_suffix: str, status_key: str) -> None:
         self._controller = controller

@@ -25,7 +25,7 @@ async def async_setup_entry(
 class SmartKwlManualFan(FanEntity):
     """Expose a dedicated fan entity that controls Smart KWL target levels."""
 
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False
     _attr_name = "Manual Fan Level"
     _attr_supported_features = FanEntityFeature.PRESET_MODE
 

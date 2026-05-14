@@ -31,7 +31,7 @@ async def async_setup_entry(
 class SmartKwlMarkFiltersCleaned(ButtonEntity):
     """Button to record that filters have been cleaned."""
 
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False
     _attr_name = "Filters Cleaned"
     _attr_icon = "mdi:air-filter"
 
@@ -52,7 +52,7 @@ class SmartKwlMarkFiltersCleaned(ButtonEntity):
 class SmartKwlApplyManualOverride(ButtonEntity):
     """Button to apply timed manual override using configured values."""
 
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False
     _attr_name = "Apply Manual Override"
     _attr_icon = "mdi:timer-play"
 
@@ -73,7 +73,7 @@ class SmartKwlApplyManualOverride(ButtonEntity):
 class SmartKwlCancelManualOverride(ButtonEntity):
     """Button to cancel active manual override."""
 
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False
     _attr_name = "Cancel Manual Override"
     _attr_icon = "mdi:timer-off"
 

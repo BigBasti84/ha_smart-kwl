@@ -45,6 +45,7 @@ from .const import (
     DEFAULT_CO2_MAX,
     DEFAULT_CO2_MIN,
     DEFAULT_FAN_LEVEL,
+    DEFAULT_FILTER_LIFETIME_ENTITY,
     DEFAULT_HUMIDITY_MAX,
     DEFAULT_HUMIDITY_MIN,
     DEFAULT_MAX_FAN_LEVEL,
@@ -137,10 +138,7 @@ class SmartKwlFlowMixin:
                 ): vol.All(vol.Coerce(int), vol.Range(min=1, max=24)),
                 vol.Required(
                     CONF_FILTER_LIFETIME_ENTITY,
-                    default=defaults.get(
-                        CONF_FILTER_LIFETIME_ENTITY,
-                        "sensor.vallox_rs485_ventilation_ventilation_service_counter",
-                    ),
+                    default=defaults.get(CONF_FILTER_LIFETIME_ENTITY, DEFAULT_FILTER_LIFETIME_ENTITY),
                 ): _sensor_selector(),
                 vol.Optional(CONF_INCOMING_TEMPERATURE_ENTITY, default=defaults.get(CONF_INCOMING_TEMPERATURE_ENTITY)): _sensor_selector(),
                 vol.Optional(CONF_OUTGOING_TEMPERATURE_ENTITY, default=defaults.get(CONF_OUTGOING_TEMPERATURE_ENTITY)): _sensor_selector(),

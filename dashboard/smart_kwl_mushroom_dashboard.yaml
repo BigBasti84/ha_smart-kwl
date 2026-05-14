@@ -19,6 +19,8 @@ views:
       - type: entities
         title: Manual Override
         entities:
+          - number.smart_kwl_manual_override_level
+          - number.smart_kwl_manual_override_duration
           - button.smart_kwl_apply_manual_override
           - button.smart_kwl_cancel_manual_override
           - sensor.smart_kwl_manual_override_until

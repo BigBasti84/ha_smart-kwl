@@ -37,6 +37,7 @@ from .const import (
     CONF_SENSOR_MAX,
     CONF_SENSOR_MIN,
     CONF_SUMMER_MODE_SENSOR,
+    DEFAULT_FILTER_LIFETIME_ENTITY,
     DEFAULT_MANUAL_INCREASE_HOLD_HOURS,
     DEFAULT_MANUAL_OVERRIDE_DEFAULT_HOURS,
     FILTER_CLEAN_INTERVAL_DAYS,
@@ -148,7 +149,7 @@ class SmartKwlController:
         if summer_mode_sensor:
             entities.append(summer_mode_sensor)
 
-        lifetime_entity = self._config(CONF_FILTER_LIFETIME_ENTITY)
+        lifetime_entity = self._config(CONF_FILTER_LIFETIME_ENTITY, DEFAULT_FILTER_LIFETIME_ENTITY)
         if lifetime_entity:
             entities.append(lifetime_entity)
 
@@ -316,8 +317,16 @@ class SmartKwlController:
         self._status["manual_override_level"] = None
         self._status["manual_override_until"] = None
 
+        # Also clear external hardware-manual hold so cancel fully returns
+        # control to automation logic.
+        self._external_increase_hold_until = None
+        self._external_increase_level = None
+        self._external_decrease_level = None
+        self._external_decrease_reference_auto_level = None
+        self._status["external_manual_hold"] = "none"
+
         self._append_check_run(
-            ["manual_override | cancelled=yes"],
+            ["manual_override | cancelled=yes", "manual_external | cancelled=yes"],
             self._action_line(
                 self.current_level(),
                 self.current_percentage(),
@@ -344,7 +353,7 @@ class SmartKwlController:
             return
         now = datetime.now()
         last_cleaned_str = self._filter_store.last_cleaned
-        lifetime_entity = self._config(CONF_FILTER_LIFETIME_ENTITY)
+        lifetime_entity = self._config(CONF_FILTER_LIFETIME_ENTITY, DEFAULT_FILTER_LIFETIME_ENTITY)
 
         # Days since last cleaning
         if last_cleaned_str:
@@ -381,7 +390,14 @@ class SmartKwlController:
         else:
             lifetime_status = "ok"
 
-        self._status["filter_last_cleaned"] = last_cleaned_str
+        formatted_last_cleaned = None
+        if last_cleaned_str:
+            try:
+                formatted_last_cleaned = datetime.fromisoformat(last_cleaned_str).strftime("%d-%m-%Y")
+            except ValueError:
+                formatted_last_cleaned = last_cleaned_str
+
+        self._status["filter_last_cleaned"] = formatted_last_cleaned
         self._status["filter_lifetime_entity"] = lifetime_entity
         self._status["filter_months_remaining"] = months_remaining
         self._status["filter_days_since_cleaning"] = days_since

@@ -77,7 +77,7 @@ async def async_setup_entry(
 class SmartKwlBaseEntity(RestoreEntity):
     """Base entity for Smart KWL info entities."""
 
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False
 
     def __init__(self, controller: SmartKwlController, entry: ConfigEntry, name: str, unique_suffix: str) -> None:
         self._controller = controller
