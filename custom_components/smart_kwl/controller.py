@@ -78,6 +78,7 @@ class SmartKwlController:
         self._unsub_post_start_check: CALLBACK_TYPE | None = None
         self._last_apply: datetime | None = None
         self._last_level: int | None = None
+        self._last_commanded_level: int | None = None
         self._listeners: list[Callable[[], None]] = []
         self._warned_unavailable: set[str] = set()
         self._warned_invalid: set[str] = set()
@@ -87,6 +88,7 @@ class SmartKwlController:
         self._external_increase_level: int | None = None
         self._external_decrease_level: int | None = None
         self._external_decrease_reference_auto_level: int | None = None
+        self._last_fan_change_hardware: bool = False
         self._manual_override_until: datetime | None = None
         self._manual_override_level: int | None = None
         self._pending_manual_override_level: int = int(self._config(CONF_DEFAULT_FAN_LEVEL, 2))
@@ -268,6 +270,9 @@ class SmartKwlController:
 
     async def async_apply_manual_override(self) -> bool:
         """Activate a fixed manual fan level for the configured duration."""
+        if self._status.get("manual_override_active"):
+            return False
+
         min_level, max_level = self.level_bounds()
         level = max(min_level, min(max_level, int(self._pending_manual_override_level)))
         hours = max(1, min(24, int(self._pending_manual_override_hours)))
@@ -299,6 +304,12 @@ class SmartKwlController:
         fan_entity = self._config(CONF_FAN_ENTITY)
         before_percentage = self._fan_percentage(fan_entity)
         before_level = self._percentage_to_level(before_percentage, max_level)
+
+        # Pre-set guard so concurrent recalculates during the internal sleep
+        # do not misclassify this controller write as a hardware change.
+        self._last_commanded_level = level
+        self._last_apply = now
+
         success = await self._apply_fan_level_with_verification(decision)
         after_percentage = self._fan_percentage(fan_entity)
         after_level = self._percentage_to_level(after_percentage, max_level)
@@ -309,8 +320,8 @@ class SmartKwlController:
         self._status["last_apply_success"] = success
         self._status["last_apply"] = now.isoformat()
         if success:
-            self._last_apply = now
             self._last_level = after_level if after_level is not None else level
+            self._last_commanded_level = self._last_level
             self._status["last_error"] = None
             self._append_check_run(
                 [
@@ -345,6 +356,9 @@ class SmartKwlController:
 
     async def async_cancel_manual_override(self) -> None:
         """Cancel manual override and resume automatic control immediately."""
+        if not self._status.get("manual_override_active"):
+            return
+
         self._manual_override_until = None
         self._manual_override_level = None
         self._status["manual_override_active"] = False
@@ -464,6 +478,10 @@ class SmartKwlController:
         before_percentage = self._fan_percentage(fan_entity)
         before_level = self._percentage_to_level(before_percentage, max_level)
 
+        # Pre-set guard before the await.
+        self._last_commanded_level = target_level
+        self._last_apply = dt_util.utcnow()
+
         success = await self._apply_fan_level_with_verification(decision)
 
         after_percentage = self._fan_percentage(fan_entity)
@@ -475,6 +493,7 @@ class SmartKwlController:
         self._status["last_apply"] = dt_util.utcnow().isoformat()
         if success:
             self._last_level = after_level if after_level is not None else target_level
+            self._last_commanded_level = self._last_level
             self._status["last_error"] = None
             self._append_check_run(
                 ["manual_set | target_level=%s | target_percentage=%s" % (target_level, decision.percentage)],
@@ -522,6 +541,37 @@ class SmartKwlController:
             self._last_level = observed_level
             return
         if observed_level == self._last_level:
+            return
+
+        if not self._last_fan_change_hardware:
+            self._last_level = observed_level
+            detail_lines.append(
+                "manual_external | ignored=non_hardware_origin | observed_level=%s"
+                % observed_level
+            )
+            return
+
+        # Ignore controller-applied changes: either within the 15 s write window,
+        # or if the observed level matches the last commanded level (catches the
+        # race where the state event fires during the internal sleep in
+        # _apply_fan_level_with_verification before _last_apply is finalised).
+        if self._last_commanded_level is not None and observed_level == self._last_commanded_level:
+            self._last_level = observed_level
+            detail_lines.append(
+                "manual_external | ignored=matches_commanded_level | observed_level=%s"
+                % observed_level
+            )
+            return
+        if (
+            self._last_apply is not None
+            and self._last_commanded_level is not None
+            and now - self._last_apply <= timedelta(seconds=30)
+        ):
+            self._last_level = observed_level
+            detail_lines.append(
+                "manual_external | ignored=controller_applied_window | observed_level=%s"
+                % observed_level
+            )
             return
 
         previous_level = self._last_level
@@ -676,6 +726,15 @@ class SmartKwlController:
         self.hass.loop.call_soon_threadsafe(_run)
 
     def _async_handle_state_event(self, event) -> None:
+        fan_entity = self._config(CONF_FAN_ENTITY)
+        if fan_entity and event.data.get("entity_id") == fan_entity:
+            new_state = event.data.get("new_state")
+            if new_state is not None:
+                context = new_state.context
+                self._last_fan_change_hardware = (
+                    context is not None and context.user_id is None and context.parent_id is None
+                )
+
         # State changes only queue recalculation; min interval applies writes.
         self._schedule_recalculate(force=False)
 
@@ -748,14 +807,20 @@ class SmartKwlController:
             self._notify()
             return
 
+        # Set guard fields BEFORE the await so concurrent recalculates triggered
+        # by the fan state-change event (which fires during the internal sleep)
+        # will see the correct commanded level and skip false hardware detection.
+        self._last_commanded_level = decision.level
+        self._last_apply = now
+
         success = await self._apply_fan_level_with_verification(decision)
         after_percentage = self._fan_percentage(fan_entity)
         after_level = self._percentage_to_level(after_percentage, int(self._config(CONF_MAX_FAN_LEVEL, 8)))
         self._status["last_apply_success"] = success
         self._status["last_apply"] = now.isoformat()
-        self._last_apply = now
         if success:
             self._last_level = after_level if after_level is not None else decision.level
+            self._last_commanded_level = self._last_level
             self._status["last_error"] = None
             self._append_check_run(
                 evaluation.detail_lines,
@@ -1094,8 +1159,7 @@ class SmartKwlController:
         after_level = after_raw.split(" ", 1)[0]
         if before_level in {"n/a", "None"} or after_level in {"n/a", "None"}:
             return None
-        keep_without_level_change = reason in {"manual_override", "manual_override_cancel"}
-        if before_level == after_level and not keep_without_level_change:
+        if before_level == after_level:
             return None
 
         return {

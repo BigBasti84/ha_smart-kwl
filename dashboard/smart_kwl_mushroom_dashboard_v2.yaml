@@ -20,15 +20,17 @@ views:
           - entity: binary_sensor.smart_kwl_manual_override_active
             name: Manual Override Active
 
-      - type: vertical-stack
+      - type: custom:stack-in-card
+        mode: vertical
         cards:
           - type: heading
             heading: Manual Override
+            heading_style: title
 
-          - type: grid
-            title: Fan Speed (1–8)
-            columns: 8
-            square: false
+          - type: heading
+            heading: Fan Speed (1–8)
+            heading_style: subtitle
+          - type: horizontal-stack
             cards:
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_level
@@ -47,22 +49,20 @@ views:
                   card:
                     - width: 100%
                     - border-radius: 8px
-                    - padding: 12px 0px
+                    - padding: 16px 10px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 1;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? 'rgba(33,150,243,0.25)' : 'rgba(128,128,128,0.08)';
                           return isActive ? '#2196F3' : 'rgba(128,128,128,0.12)';
                         ]]]
                     - color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 1;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? '#ffffff' : 'rgba(255,255,255,0.25)';
                           return isActive ? '#ffffff' : '#000000';
                         ]]]
@@ -70,6 +70,11 @@ views:
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 1;
                           return isActive ? '2px solid #2196F3' : '1px solid rgba(128,128,128,0.2)';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
                   name:
                     - font-size: 16px
@@ -92,22 +97,20 @@ views:
                   card:
                     - width: 100%
                     - border-radius: 8px
-                    - padding: 12px 0px
+                    - padding: 16px 10px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 2;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? 'rgba(33,150,243,0.25)' : 'rgba(128,128,128,0.08)';
                           return isActive ? '#2196F3' : 'rgba(128,128,128,0.12)';
                         ]]]
                     - color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 2;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? '#ffffff' : 'rgba(255,255,255,0.25)';
                           return isActive ? '#ffffff' : '#000000';
                         ]]]
@@ -115,6 +118,11 @@ views:
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 2;
                           return isActive ? '2px solid #2196F3' : '1px solid rgba(128,128,128,0.2)';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
                   name:
                     - font-size: 16px
@@ -137,22 +145,20 @@ views:
                   card:
                     - width: 100%
                     - border-radius: 8px
-                    - padding: 12px 0px
+                    - padding: 16px 10px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 3;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? 'rgba(33,150,243,0.25)' : 'rgba(128,128,128,0.08)';
                           return isActive ? '#2196F3' : 'rgba(128,128,128,0.12)';
                         ]]]
                     - color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 3;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? '#ffffff' : 'rgba(255,255,255,0.25)';
                           return isActive ? '#ffffff' : '#000000';
                         ]]]
@@ -160,6 +166,11 @@ views:
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 3;
                           return isActive ? '2px solid #2196F3' : '1px solid rgba(128,128,128,0.2)';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
                   name:
                     - font-size: 16px
@@ -182,22 +193,20 @@ views:
                   card:
                     - width: 100%
                     - border-radius: 8px
-                    - padding: 12px 0px
+                    - padding: 16px 10px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 4;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? 'rgba(33,150,243,0.25)' : 'rgba(128,128,128,0.08)';
                           return isActive ? '#2196F3' : 'rgba(128,128,128,0.12)';
                         ]]]
                     - color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 4;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? '#ffffff' : 'rgba(255,255,255,0.25)';
                           return isActive ? '#ffffff' : '#000000';
                         ]]]
@@ -205,6 +214,11 @@ views:
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 4;
                           return isActive ? '2px solid #2196F3' : '1px solid rgba(128,128,128,0.2)';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
                   name:
                     - font-size: 16px
@@ -227,22 +241,20 @@ views:
                   card:
                     - width: 100%
                     - border-radius: 8px
-                    - padding: 12px 0px
+                    - padding: 16px 10px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 5;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? 'rgba(33,150,243,0.25)' : 'rgba(128,128,128,0.08)';
                           return isActive ? '#2196F3' : 'rgba(128,128,128,0.12)';
                         ]]]
                     - color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 5;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? '#ffffff' : 'rgba(255,255,255,0.25)';
                           return isActive ? '#ffffff' : '#000000';
                         ]]]
@@ -250,6 +262,11 @@ views:
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 5;
                           return isActive ? '2px solid #2196F3' : '1px solid rgba(128,128,128,0.2)';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
                   name:
                     - font-size: 16px
@@ -272,22 +289,20 @@ views:
                   card:
                     - width: 100%
                     - border-radius: 8px
-                    - padding: 12px 0px
+                    - padding: 16px 10px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 6;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? 'rgba(33,150,243,0.25)' : 'rgba(128,128,128,0.08)';
                           return isActive ? '#2196F3' : 'rgba(128,128,128,0.12)';
                         ]]]
                     - color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 6;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? '#ffffff' : 'rgba(255,255,255,0.25)';
                           return isActive ? '#ffffff' : '#000000';
                         ]]]
@@ -295,6 +310,11 @@ views:
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 6;
                           return isActive ? '2px solid #2196F3' : '1px solid rgba(128,128,128,0.2)';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
                   name:
                     - font-size: 16px
@@ -317,22 +337,20 @@ views:
                   card:
                     - width: 100%
                     - border-radius: 8px
-                    - padding: 12px 0px
+                    - padding: 16px 10px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 7;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? 'rgba(33,150,243,0.25)' : 'rgba(128,128,128,0.08)';
                           return isActive ? '#2196F3' : 'rgba(128,128,128,0.12)';
                         ]]]
                     - color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 7;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? '#ffffff' : 'rgba(255,255,255,0.25)';
                           return isActive ? '#ffffff' : '#000000';
                         ]]]
@@ -340,6 +358,11 @@ views:
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 7;
                           return isActive ? '2px solid #2196F3' : '1px solid rgba(128,128,128,0.2)';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
                   name:
                     - font-size: 16px
@@ -362,22 +385,20 @@ views:
                   card:
                     - width: 100%
                     - border-radius: 8px
-                    - padding: 12px 0px
+                    - padding: 16px 10px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 8;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? 'rgba(33,150,243,0.25)' : 'rgba(128,128,128,0.08)';
                           return isActive ? '#2196F3' : 'rgba(128,128,128,0.12)';
                         ]]]
                     - color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 8;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? '#ffffff' : 'rgba(255,255,255,0.25)';
                           return isActive ? '#ffffff' : '#000000';
                         ]]]
@@ -386,14 +407,19 @@ views:
                           const isActive = Math.round(parseFloat(entity.state)) === 8;
                           return isActive ? '2px solid #2196F3' : '1px solid rgba(128,128,128,0.2)';
                         ]]]
+                    - pointer-events: |
+                        [[[
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
+                        ]]]
                   name:
                     - font-size: 16px
                     - font-weight: 600
 
-          - type: grid
-            title: Duration (hours)
-            columns: 8
-            square: false
+          - type: heading
+            heading: Duration (hours)
+            heading_style: subtitle
+          - type: horizontal-stack
             cards:
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_duration
@@ -412,22 +438,20 @@ views:
                   card:
                     - width: 100%
                     - border-radius: 8px
-                    - padding: 12px 0px
+                    - padding: 16px 10px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 1;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? 'rgba(76,175,80,0.25)' : 'rgba(128,128,128,0.08)';
                           return isActive ? '#4CAF50' : 'rgba(128,128,128,0.12)';
                         ]]]
                     - color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 1;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? '#ffffff' : 'rgba(255,255,255,0.25)';
                           return isActive ? '#ffffff' : '#000000';
                         ]]]
@@ -435,6 +459,11 @@ views:
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 1;
                           return isActive ? '2px solid #4CAF50' : '1px solid rgba(128,128,128,0.2)';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
                   name:
                     - font-size: 16px
@@ -457,22 +486,20 @@ views:
                   card:
                     - width: 100%
                     - border-radius: 8px
-                    - padding: 12px 0px
+                    - padding: 16px 10px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 2;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? 'rgba(76,175,80,0.25)' : 'rgba(128,128,128,0.08)';
                           return isActive ? '#4CAF50' : 'rgba(128,128,128,0.12)';
                         ]]]
                     - color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 2;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? '#ffffff' : 'rgba(255,255,255,0.25)';
                           return isActive ? '#ffffff' : '#000000';
                         ]]]
@@ -480,6 +507,11 @@ views:
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 2;
                           return isActive ? '2px solid #4CAF50' : '1px solid rgba(128,128,128,0.2)';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
                   name:
                     - font-size: 16px
@@ -502,22 +534,20 @@ views:
                   card:
                     - width: 100%
                     - border-radius: 8px
-                    - padding: 12px 0px
+                    - padding: 16px 10px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 3;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? 'rgba(76,175,80,0.25)' : 'rgba(128,128,128,0.08)';
                           return isActive ? '#4CAF50' : 'rgba(128,128,128,0.12)';
                         ]]]
                     - color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 3;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? '#ffffff' : 'rgba(255,255,255,0.25)';
                           return isActive ? '#ffffff' : '#000000';
                         ]]]
@@ -525,6 +555,11 @@ views:
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 3;
                           return isActive ? '2px solid #4CAF50' : '1px solid rgba(128,128,128,0.2)';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
                   name:
                     - font-size: 16px
@@ -547,22 +582,20 @@ views:
                   card:
                     - width: 100%
                     - border-radius: 8px
-                    - padding: 12px 0px
+                    - padding: 16px 10px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 4;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? 'rgba(76,175,80,0.25)' : 'rgba(128,128,128,0.08)';
                           return isActive ? '#4CAF50' : 'rgba(128,128,128,0.12)';
                         ]]]
                     - color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 4;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? '#ffffff' : 'rgba(255,255,255,0.25)';
                           return isActive ? '#ffffff' : '#000000';
                         ]]]
@@ -570,6 +603,11 @@ views:
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 4;
                           return isActive ? '2px solid #4CAF50' : '1px solid rgba(128,128,128,0.2)';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
                   name:
                     - font-size: 16px
@@ -592,22 +630,20 @@ views:
                   card:
                     - width: 100%
                     - border-radius: 8px
-                    - padding: 12px 0px
+                    - padding: 16px 10px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 5;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? 'rgba(76,175,80,0.25)' : 'rgba(128,128,128,0.08)';
                           return isActive ? '#4CAF50' : 'rgba(128,128,128,0.12)';
                         ]]]
                     - color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 5;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? '#ffffff' : 'rgba(255,255,255,0.25)';
                           return isActive ? '#ffffff' : '#000000';
                         ]]]
@@ -615,6 +651,11 @@ views:
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 5;
                           return isActive ? '2px solid #4CAF50' : '1px solid rgba(128,128,128,0.2)';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
                   name:
                     - font-size: 16px
@@ -637,22 +678,20 @@ views:
                   card:
                     - width: 100%
                     - border-radius: 8px
-                    - padding: 12px 0px
+                    - padding: 16px 10px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 6;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? 'rgba(76,175,80,0.25)' : 'rgba(128,128,128,0.08)';
                           return isActive ? '#4CAF50' : 'rgba(128,128,128,0.12)';
                         ]]]
                     - color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 6;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? '#ffffff' : 'rgba(255,255,255,0.25)';
                           return isActive ? '#ffffff' : '#000000';
                         ]]]
@@ -660,6 +699,11 @@ views:
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 6;
                           return isActive ? '2px solid #4CAF50' : '1px solid rgba(128,128,128,0.2)';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
                   name:
                     - font-size: 16px
@@ -682,22 +726,20 @@ views:
                   card:
                     - width: 100%
                     - border-radius: 8px
-                    - padding: 12px 0px
+                    - padding: 16px 10px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 7;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? 'rgba(76,175,80,0.25)' : 'rgba(128,128,128,0.08)';
                           return isActive ? '#4CAF50' : 'rgba(128,128,128,0.12)';
                         ]]]
                     - color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 7;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? '#ffffff' : 'rgba(255,255,255,0.25)';
                           return isActive ? '#ffffff' : '#000000';
                         ]]]
@@ -705,6 +747,11 @@ views:
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 7;
                           return isActive ? '2px solid #4CAF50' : '1px solid rgba(128,128,128,0.2)';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
                   name:
                     - font-size: 16px
@@ -727,22 +774,20 @@ views:
                   card:
                     - width: 100%
                     - border-radius: 8px
-                    - padding: 12px 0px
+                    - padding: 16px 10px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 8;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? 'rgba(76,175,80,0.25)' : 'rgba(128,128,128,0.08)';
                           return isActive ? '#4CAF50' : 'rgba(128,128,128,0.12)';
                         ]]]
                     - color: |
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 8;
-                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           if (isDisabled) return isActive ? '#ffffff' : 'rgba(255,255,255,0.25)';
                           return isActive ? '#ffffff' : '#000000';
                         ]]]
@@ -750,6 +795,11 @@ views:
                         [[[
                           const isActive = Math.round(parseFloat(entity.state)) === 8;
                           return isActive ? '2px solid #4CAF50' : '1px solid rgba(128,128,128,0.2)';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const isDisabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
                   name:
                     - font-size: 16px
@@ -776,15 +826,18 @@ views:
                     - font-weight: 500
                     - background-color: |
                         [[[
-                          const disabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
-                          return disabled ? 'rgba(128,128,128,0.08)' : 'rgba(128,128,128,0.12)';
+                          const disabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return disabled ? 'rgba(128,128,128,0.08)' : 'rgba(76,175,80,0.95)';
                         ]]]
                     - color: |
                         [[[
-                          const disabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on'
-                            || states['sensor.smart_kwl_external_manual_hold'].state !== 'none';
-                          return disabled ? 'rgba(255,255,255,0.25)' : 'var(--primary-text-color)';
+                          const disabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return disabled ? 'rgba(255,255,255,0.25)' : '#ffffff';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const disabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
               - type: custom:button-card
                 entity: button.smart_kwl_cancel_manual_override
@@ -804,12 +857,17 @@ views:
                     - background-color: |
                         [[[
                           const active = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
-                          return active ? 'rgba(128,128,128,0.12)' : 'rgba(128,128,128,0.08)';
+                          return active ? 'rgba(244,67,54,0.92)' : 'rgba(128,128,128,0.08)';
                         ]]]
                     - color: |
                         [[[
                           const active = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
-                          return active ? 'var(--primary-text-color)' : 'rgba(255,255,255,0.25)';
+                          return active ? '#ffffff' : 'rgba(255,255,255,0.25)';
+                        ]]]
+                    - pointer-events: |
+                        [[[
+                          const active = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'auto' : 'none';
                         ]]]
 
           - type: conditional

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.28] - 2026-05-16
+### Fixed
+- **Controller race condition**: `_last_commanded_level` and `_last_apply` are now set *before* `await _apply_fan_level_with_verification()` in all three apply paths. Previously the fan state-change event fired during the internal 1 s sleep before the guard fields were written, causing every automation write to be misclassified as a hardware manual change.
+- **False `manual_hardware_decrease/increase` history entries**: Added a second guard — any fan level that matches `_last_commanded_level` is always treated as a controller-applied change (regardless of timing). Widened the time-window guard from 15 s to 30 s as additional safety.
+- **Start button always grey**: Root cause was the false hardware detections setting `external_manual_hold`, which made the Apply button entity unavailable. Eliminated by the race-condition fix above.
+- **Dashboard**: All enable/disable logic now uses `binary_sensor.smart_kwl_manual_override_active` as the single source of truth. No more dependency on entity availability or `external_manual_hold` for visual state.
+- **Dashboard v3**: Added `smart_kwl_mushroom_dashboard_v3.yaml` with all current fixes applied.
+### Changed
+- Selector rows (`horizontal-stack`) now correctly block interaction while an override is active and re-enable immediately after cancel.
+- Start button shown in green when available, grey when blocked.
+- Cancel button shown in red when an override is active, grey/blocked otherwise.
+
 ## [0.1.27] - 2026-05-14
 ### Changed
 - Manual Override card now displays graphical radio-button tiles for fan speed and duration selection
