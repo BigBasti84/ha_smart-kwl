@@ -88,6 +88,8 @@ class SmartKwlController:
         self._external_increase_level: int | None = None
         self._external_decrease_level: int | None = None
         self._external_decrease_reference_auto_level: int | None = None
+        self._hardware_override_until: datetime | None = None
+        self._hardware_override_level: int | None = None
         self._last_fan_change_hardware: bool = False
         self._manual_override_until: datetime | None = None
         self._manual_override_level: int | None = None
@@ -293,6 +295,8 @@ class SmartKwlController:
         self._external_increase_level = None
         self._external_decrease_level = None
         self._external_decrease_reference_auto_level = None
+        self._hardware_override_until = None
+        self._hardware_override_level = None
         self._status["external_manual_hold"] = "none"
 
         decision = ControlDecision(
@@ -375,6 +379,8 @@ class SmartKwlController:
         self._external_increase_level = None
         self._external_decrease_level = None
         self._external_decrease_reference_auto_level = None
+        self._hardware_override_until = None
+        self._hardware_override_level = None
         self._status["external_manual_hold"] = "none"
 
         self._append_check_run(
@@ -576,41 +582,30 @@ class SmartKwlController:
 
         previous_level = self._last_level
 
-        if observed_level > self._last_level:
-            hold_hours = int(self._config(CONF_MANUAL_INCREASE_HOLD_HOURS, DEFAULT_MANUAL_INCREASE_HOLD_HOURS))
-            self._external_increase_level = observed_level
-            self._external_increase_hold_until = now + timedelta(hours=hold_hours)
-            self._external_decrease_level = None
-            self._external_decrease_reference_auto_level = None
-            self._status["external_manual_hold"] = "increase"
-            detail_lines.append(
-                "manual_external | type=increase | observed_level=%s | hold_until=%s"
-                % (observed_level, self._external_increase_hold_until.isoformat())
-            )
-            self._append_change_history_event(
-                now.isoformat(),
-                previous_level,
-                observed_level,
-                "manual_hardware_increase",
-                "observed",
-            )
-        else:
-            self._external_decrease_level = observed_level
-            self._external_decrease_reference_auto_level = auto_level
-            self._external_increase_level = None
-            self._external_increase_hold_until = None
-            self._status["external_manual_hold"] = "decrease"
-            detail_lines.append(
-                "manual_external | type=decrease | observed_level=%s | base_auto_level=%s"
-                % (observed_level, auto_level)
-            )
-            self._append_change_history_event(
-                now.isoformat(),
-                previous_level,
-                observed_level,
-                "manual_hardware_decrease",
-                "observed",
-            )
+        hold_hours = int(self._config(CONF_MANUAL_OVERRIDE_DEFAULT_HOURS, DEFAULT_MANUAL_OVERRIDE_DEFAULT_HOURS))
+        hold_hours = max(1, min(24, hold_hours))
+        self._hardware_override_level = observed_level
+        self._hardware_override_until = now + timedelta(hours=hold_hours)
+
+        # Hardware override supersedes legacy external hold modes.
+        self._external_increase_level = None
+        self._external_increase_hold_until = None
+        self._external_decrease_level = None
+        self._external_decrease_reference_auto_level = None
+        self._status["external_manual_hold"] = "hardware"
+
+        change_reason = "manual_hardware_increase" if observed_level > previous_level else "manual_hardware_decrease"
+        detail_lines.append(
+            "manual_external | type=hardware_override | observed_level=%s | hold_until=%s"
+            % (observed_level, self._hardware_override_until.isoformat())
+        )
+        self._append_change_history_event(
+            now.isoformat(),
+            previous_level,
+            observed_level,
+            change_reason,
+            "observed",
+        )
 
         self._last_level = observed_level
 
@@ -655,6 +650,33 @@ class SmartKwlController:
         self._status["manual_override_active"] = False
         self._status["manual_override_level"] = None
         self._status["manual_override_until"] = None
+
+        # Hardware override: active for default duration and acts as a floor,
+        # so automation may increase above it but never reduce below it.
+        if self._hardware_override_until is not None and self._hardware_override_level is not None:
+            if now < self._hardware_override_until:
+                hardware_level = max(min_level, min(max_level, self._hardware_override_level))
+                self._status["manual_override_active"] = True
+                self._status["manual_override_level"] = hardware_level
+                self._status["manual_override_until"] = self._hardware_override_until.isoformat()
+                self._status["external_manual_hold"] = "hardware"
+                if target_level < hardware_level:
+                    target_level = hardware_level
+                    reason = "manual_hardware_override_floor"
+                    detail_lines.append(
+                        "manual_override | source=hardware | floor_level=%s | enforced=yes | until=%s"
+                        % (hardware_level, self._hardware_override_until.isoformat())
+                    )
+                else:
+                    detail_lines.append(
+                        "manual_override | source=hardware | floor_level=%s | enforced=no | until=%s"
+                        % (hardware_level, self._hardware_override_until.isoformat())
+                    )
+            else:
+                self._hardware_override_level = None
+                self._hardware_override_until = None
+                self._status["external_manual_hold"] = "none"
+                detail_lines.append("manual_override | source=hardware | active=no | reason=expired")
 
         # External manual increase: keep at least this level for configured hold duration.
         if self._external_increase_hold_until is not None and self._external_increase_level is not None:

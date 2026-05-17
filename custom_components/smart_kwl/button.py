@@ -84,10 +84,7 @@ class SmartKwlApplyManualOverride(ButtonEntity):
     @property
     def available(self) -> bool:
         status = self._controller.status
-        return (
-            not bool(status.get("manual_override_active"))
-            and str(status.get("external_manual_hold") or "none") == "none"
-        )
+        return not bool(status.get("manual_override_active"))
 
     async def async_press(self) -> None:
         await self._controller.async_apply_manual_override()

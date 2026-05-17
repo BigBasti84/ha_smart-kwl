@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.29] - 2026-05-17
+### Fixed
+- Hardware manual fan changes are now handled as timed hardware overrides (default 2h via manual override default), including proper activation state and cancel behavior.
+- Hardware override now behaves as a floor: automation can increase fan speed when needed, but will not reduce below the hardware-selected level during the active hold.
+- Manual Override control availability now consistently follows `manual_override_active`, preventing stale/unexpected disabled states in Start/selector controls.
+
+### Changed
+- Manual Override dashboard layout updated so Fan Speed and Duration selectors use identical 8-column grids for uniform button widths.
+- Manual Override heading style adjusted for better visual consistency with surrounding cards.
+
 ## [0.1.28] - 2026-05-16
 ### Fixed
 - **Controller race condition**: `_last_commanded_level` and `_last_apply` are now set *before* `await _apply_fan_level_with_verification()` in all three apply paths. Previously the fan state-change event fired during the internal 1 s sleep before the guard fields were written, causing every automation write to be misclassified as a hardware manual change.

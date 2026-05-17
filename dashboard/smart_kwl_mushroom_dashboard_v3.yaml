@@ -25,12 +25,14 @@ views:
         cards:
           - type: heading
             heading: Manual Override
-            heading_style: title
+            heading_style: subtitle
 
           - type: heading
             heading: Fan Speed (1–8)
             heading_style: subtitle
-          - type: horizontal-stack
+          - type: grid
+            columns: 8
+            square: false
             cards:
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_level
@@ -419,7 +421,9 @@ views:
           - type: heading
             heading: Duration (hours)
             heading_style: subtitle
-          - type: horizontal-stack
+          - type: grid
+            columns: 8
+            square: false
             cards:
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_duration

@@ -80,10 +80,7 @@ class SmartKwlManualOverrideLevelNumber(SmartKwlBaseNumber):
     @property
     def available(self) -> bool:
         status = self._controller.status
-        return (
-            not bool(status.get("manual_override_active"))
-            and str(status.get("external_manual_hold") or "none") == "none"
-        )
+        return not bool(status.get("manual_override_active"))
 
     async def async_set_native_value(self, value: float) -> None:
         self._controller.set_pending_manual_override_level(int(round(value)))
@@ -109,10 +106,7 @@ class SmartKwlManualOverrideDurationNumber(SmartKwlBaseNumber):
     @property
     def available(self) -> bool:
         status = self._controller.status
-        return (
-            not bool(status.get("manual_override_active"))
-            and str(status.get("external_manual_hold") or "none") == "none"
-        )
+        return not bool(status.get("manual_override_active"))
 
     async def async_set_native_value(self, value: float) -> None:
         self._controller.set_pending_manual_override_hours(int(round(value)))
