@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.0] - 2026-05-19
+### Added
+- Enhanced temperature flow card with fan-speed reason text and explicit summer/night mode status labels.
+- Change-history events now persist source sensor value/threshold context for humidity and CO2 decisions.
+
+### Changed
+- Filter Status card redesigned with full-width progress bars, day-based labels, and improved button alignment.
+- Filter cleaning logic now disables/greys out cleaning actions when filter replacement is due before next cleaning.
+- Fan speed mini-graph now renders sharp transitions (`smooth: false`) so short spikes are visible.
+- Overview layout updated so Recent Changes is shown as the final section beneath Manual Override.
+
 ## [0.1.29] - 2026-05-17
 ### Fixed
 - Hardware manual fan changes are now handled as timed hardware overrides (default 2h via manual override default), including proper activation state and cancel behavior.

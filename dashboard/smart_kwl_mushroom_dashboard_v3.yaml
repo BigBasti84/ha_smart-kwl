@@ -7,36 +7,586 @@ views:
     cards:
       - type: heading
         heading: Smart KWL Ventilation
-
-      - type: entities
-        title: Status
-        entities:
-          - entity: binary_sensor.ventilation_on
-            name: Ventilation On
-          - entity: binary_sensor.summer_mode_active
-            name: Summer Mode Active
-          - entity: binary_sensor.night_mode_active
-            name: Night Mode Active
-          - entity: binary_sensor.smart_kwl_manual_override_active
-            name: Manual Override Active
-
+        heading_style: title
+        icon: mdi:fan
+        badges:
+          - type: entity
+            show_state: true
+            show_icon: true
+            entity: sensor.vallox_rs485_ventilation_vallox_fan_speed
+            color: primary
+          - type: entity
+            entity: light.beleuchtung_spule
       - type: custom:stack-in-card
         mode: vertical
         cards:
-          - type: heading
-            heading: Manual Override
-            heading_style: subtitle
+          - type: gauge
+            entity: sensor.target_fan_level
+            name: Fan Level (1-8)
+            min: 1
+            max: 8
+            needle: true
+            severity:
+              green: 1
+              yellow: 5
+              red: 7
+          - type: custom:mini-graph-card
+            entities:
+              - entity: sensor.target_fan_level
+            hours_to_show: 6
+            show:
+              name: false
+              icon: false
+              legend: false
+              labels: false
+              value: true
+              state: false
+              points: false
+              extrema: false
+              average: false
+              fill: true
+            color: orange
+            line_width: 3
+            height: 60
+            smooth: false
+          - type: grid
+            columns: 2
+            square: false
+            cards:
+              - type: custom:stack-in-card
+                mode: vertical
+                cards:
+                  - type: gauge
+                    entity: sensor.humidity_combined
+                    name: Humidity Current
+                    unit_of_measurement: '%'
+                    min: 0
+                    max: 100
+                    needle: true
+                    severity:
+                      green: 0
+                      yellow: 50
+                      red: 80
+                  - type: custom:mini-graph-card
+                    entities:
+                      - entity: sensor.humidity_combined
+                    hours_to_show: 24
+                    show:
+                      name: false
+                      icon: false
+                      legend: false
+                      labels: false
+                      value: true
+                      state: false
+                      points: false
+                      extrema: false
+                      average: false
+                      fill: true
+                    color: orange
+                    line_width: 3
+                    height: 60
+              - type: custom:stack-in-card
+                mode: vertical
+                cards:
+                  - type: gauge
+                    entity: sensor.co2_combined
+                    name: CO2 Current
+                    unit_of_measurement: ppm
+                    min: 400
+                    max: 1200
+                    needle: true
+                    severity:
+                      green: 400
+                      yellow: 800
+                      red: 1000
+                  - type: custom:mini-graph-card
+                    entities:
+                      - entity: sensor.co2_combined
+                    hours_to_show: 24
+                    show:
+                      name: false
+                      icon: false
+                      legend: false
+                      labels: false
+                      value: true
+                      state: false
+                      points: false
+                      extrema: false
+                      average: false
+                      fill: true
+                    color: orange
+                    line_width: 3
+                    height: 60
+      - type: custom:stack-in-card
+        mode: vertical
+        cards:
+          - type: custom:button-card
+            show_name: false
+            show_icon: false
+            show_state: false
+            triggers_update:
+              - binary_sensor.ventilation_on
+              - binary_sensor.summer_mode_active
+              - binary_sensor.night_mode_active
+              - binary_sensor.smart_kwl_manual_override_active
+              - sensor.target_fan_level
+              - sensor.check_log
+              - sensor.outside_temperature
+              - sensor.exhaust_temperature
+              - sensor.incoming_temperature
+              - sensor.outgoing_temperature
+            custom_fields:
+              flow: |
+                [[[
+                  const on = states['binary_sensor.ventilation_on']?.state === 'on';
+                  const topColor = on ? '#4fc3f7' : 'rgba(120,120,120,0.35)';
+                  const bottomColor = on ? '#ab47bc' : 'rgba(120,120,120,0.35)';
+                  const dotOpacity = on ? 0.95 : 0;
+                  const centerGlow = on ? 'rgba(255,183,77,0.55)' : 'rgba(170,170,170,0.25)';
 
+                  // SVG viewBox 0 0 1000 520, covers full card (no header)
+                  // SVG_y = css_top_pct * 520  (26.5%→138, 73.5%→382, 49.5%→257)
+                  // SVG_x = css_left_pct * 10  (15.5%→155, 84.5%→845, 50%→500)
+                  const p1 = "M155 138 C 350 138, 420 257, 500 257";  // outside→center
+                  const p2 = "M845 138 C 650 138, 580 257, 500 257";  // incoming→center
+                  const p3 = "M155 382 C 350 382, 420 257, 500 257";  // exhaust line
+                  const p4 = "M845 382 C 650 382, 580 257, 500 257";  // outgoing line
+                  // Reversed paths for dots: center→exhaust, center→outgoing
+                  const p3r = "M500 257 C 420 257, 350 382, 155 382";
+                  const p4r = "M500 257 C 580 257, 650 382, 845 382";
+                  return `
+                    <svg viewBox="0 0 1000 520" preserveAspectRatio="none" style="width:100%;height:100%;">
+                      <path d="${p1}" fill="none" stroke="${topColor}" stroke-width="4" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+                      <path d="${p2}" fill="none" stroke="${topColor}" stroke-width="4" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+                      <path d="${p3}" fill="none" stroke="${bottomColor}" stroke-width="4" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+                      <path d="${p4}" fill="none" stroke="${bottomColor}" stroke-width="4" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+
+                      <circle r="8" fill="${topColor}" opacity="${dotOpacity}">
+                        <animateMotion dur="2.0s" repeatCount="indefinite" path="${p1}" />
+                      </circle>
+                      <circle r="8" fill="${topColor}" opacity="${dotOpacity}">
+                        <animateMotion dur="2.0s" repeatCount="indefinite" path="${p2}" />
+                      </circle>
+                      <circle r="8" fill="${bottomColor}" opacity="${dotOpacity}">
+                        <animateMotion dur="2.0s" repeatCount="indefinite" path="${p3r}" />
+                      </circle>
+                      <circle r="8" fill="${bottomColor}" opacity="${dotOpacity}">
+                        <animateMotion dur="2.0s" repeatCount="indefinite" path="${p4r}" />
+                      </circle>
+                    </svg>
+                  `;
+                ]]]
+              outside_bubble: |
+                [[[
+                  const s = states['sensor.outside_temperature']?.state;
+                  const n = parseFloat(s);
+                  const value = Number.isFinite(n) ? `${n.toFixed(1)} °C` : (s || '-');
+                  return `<div class="flow-bubble flow-left"><ha-icon icon="mdi:weather-windy" class="flow-icon"></ha-icon><div class="flow-value">${value}</div></div>`;
+                ]]]
+              exhaust_bubble: |
+                [[[
+                  const s = states['sensor.exhaust_temperature']?.state;
+                  const n = parseFloat(s);
+                  const value = Number.isFinite(n) ? `${n.toFixed(1)} °C` : (s || '-');
+                  return `<div class="flow-bubble flow-left"><ha-icon icon="mdi:air-filter" class="flow-icon"></ha-icon><div class="flow-value">${value}</div></div>`;
+                ]]]
+              incoming_bubble: |
+                [[[
+                  const s = states['sensor.incoming_temperature']?.state;
+                  const n = parseFloat(s);
+                  const value = Number.isFinite(n) ? `${n.toFixed(1)} °C` : (s || '-');
+                  return `<div class="flow-bubble flow-right"><ha-icon icon="mdi:arrow-collapse-left" class="flow-icon"></ha-icon><div class="flow-value">${value}</div></div>`;
+                ]]]
+              outgoing_bubble: |
+                [[[
+                  const s = states['sensor.outgoing_temperature']?.state;
+                  const n = parseFloat(s);
+                  const value = Number.isFinite(n) ? `${n.toFixed(1)} °C` : (s || '-');
+                  return `<div class="flow-bubble flow-right"><ha-icon icon="mdi:arrow-expand-right" class="flow-icon"></ha-icon><div class="flow-value">${value}</div></div>`;
+                ]]]
+              outside_label: |
+                [[[
+                  return `<div class="flow-label">Outside</div>`;
+                ]]]
+              exhaust_label: |
+                [[[
+                  return `<div class="flow-label">Exhaust</div>`;
+                ]]]
+              incoming_label: |
+                [[[
+                  return `<div class="flow-label">Incoming</div>`;
+                ]]]
+              outgoing_label: |
+                [[[
+                  return `<div class="flow-label">Outgoing</div>`;
+                ]]]
+              center: |
+                [[[
+                  const fanOn = states['binary_sensor.ventilation_on']?.state === 'on';
+                  const speedRaw = states['sensor.target_fan_level']?.state;
+                  const speedNum = parseFloat(speedRaw);
+                  const speed = Number.isFinite(speedNum) ? Math.round(speedNum) : '-';
+                  const overrideOn = states['binary_sensor.smart_kwl_manual_override_active']?.state === 'on';
+                  const changeHistory = states['sensor.check_log']?.attributes?.change_history;
+                  const latestReason = changeHistory?.[0]?.reason || '';
+                  const reasonMap = { 'humidity': 'High Humidity', 'co2': 'High CO2', 'manual_override': 'Manual Override', 'manual': 'Manual Override' };
+                  const reasonText = overrideOn ? 'Manual Override' : (reasonMap[latestReason] || '');
+                  return `
+                    <div class="flow-center-bubble ${fanOn ? 'on' : 'off'}">
+                      <div class="flow-center-inner">
+                        <div class="flow-speed">${speed}</div>
+                        ${reasonText ? `<div class="flow-reason">${reasonText}</div>` : ''}
+                      </div>
+                    </div>
+                  `;
+                ]]]
+              summer: |
+                [[[
+                  const summer = states['binary_sensor.summer_mode_active']?.state === 'on';
+                  return `<div class="flow-summer">Summer Mode: ${summer ? 'ON' : 'OFF'}</div>`;
+                ]]]
+              night: |
+                [[[
+                  const night = states['binary_sensor.night_mode_active']?.state === 'on';
+                  return `<div class="flow-night">Night Mode: ${night ? 'ON' : 'OFF'}</div>`;
+                ]]]
+            styles:
+              card:
+                - height: 515px
+                - position: relative
+                - overflow: hidden
+                - padding: 0
+              name:
+                - position: absolute
+                - left: 18px
+                - top: 10px
+                - z-index: 5
+                - font-size: 20px
+                - font-weight: 400
+              custom_fields:
+                flow:
+                  - position: absolute
+                  - left: 0
+                  - top: 0
+                  - width: 100%
+                  - height: 100%
+                  - z-index: 1
+                outside_bubble:
+                  - position: absolute
+                  - left: 15.5%
+                  - top: 26.5%
+                  - transform: translate(-50%, -50%)
+                  - z-index: 3
+                exhaust_bubble:
+                  - position: absolute
+                  - left: 15.5%
+                  - top: 73.5%
+                  - transform: translate(-50%, -50%)
+                  - z-index: 3
+                incoming_bubble:
+                  - position: absolute
+                  - left: 84.5%
+                  - top: 26.5%
+                  - transform: translate(-50%, -50%)
+                  - z-index: 3
+                outgoing_bubble:
+                  - position: absolute
+                  - left: 84.5%
+                  - top: 73.5%
+                  - transform: translate(-50%, -50%)
+                  - z-index: 3
+                outside_label:
+                  - position: absolute
+                  - left: 15.5%
+                  - top: 11.5%
+                  - transform: translate(-50%, -50%)
+                  - z-index: 4
+                exhaust_label:
+                  - position: absolute
+                  - left: 15.5%
+                  - top: 61.5%
+                  - transform: translate(-50%, -50%)
+                  - z-index: 4
+                incoming_label:
+                  - position: absolute
+                  - left: 84.5%
+                  - top: 11.5%
+                  - transform: translate(-50%, -50%)
+                  - z-index: 4
+                outgoing_label:
+                  - position: absolute
+                  - left: 84.5%
+                  - top: 61.5%
+                  - transform: translate(-50%, -50%)
+                  - z-index: 4
+                center:
+                  - position: absolute
+                  - left: 50%
+                  - top: 49.5%
+                  - transform: translate(-50%, -50%)
+                  - z-index: 4
+                summer:
+                  - position: absolute
+                  - left: 50%
+                  - top: 90.5%
+                  - transform: translateX(-50%)
+                  - z-index: 4
+                night:
+                  - position: absolute
+                  - left: 50%
+                  - top: 94.5%
+                  - transform: translateX(-50%)
+                  - z-index: 4
+            extra_styles: |
+              .flow-bubble {
+                width: 96px;
+                height: 96px;
+                border-radius: 50%;
+                border: 3px solid rgba(100, 181, 246, 0.9);
+                background: #14181e;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+              }
+              .flow-left { border-color: rgba(79, 195, 247, 0.85); }
+              .flow-right { border-color: rgba(126, 87, 194, 0.9); }
+              .flow-label {
+                font-size: 11px;
+                color: rgba(220,220,220,0.9);
+                opacity: 0.95;
+                margin-bottom: 2px;
+              }
+              .flow-icon {
+                width: 20px;
+                height: 20px;
+                margin: 0 0 2px;
+                color: rgba(230,230,230,0.9);
+              }
+              .flow-value {
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 1.1;
+              }
+              .flow-center-bubble {
+                position: relative;
+                width: 124px;
+                height: 124px;
+                border-radius: 50%;
+                border: 3px solid rgba(130, 130, 130, 0.35);
+                background: #14110a;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+              }
+              .flow-center-inner {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 2;
+              }
+              .flow-center-bubble.on {
+                border-color: rgba(255, 183, 77, 0.96);
+              }
+              .flow-center-bubble.on::before {
+                content: "";
+                position: absolute;
+                inset: -7px;
+                border-radius: 50%;
+                border: 2px dashed rgba(255, 183, 77, 0.55);
+                animation: kwl-spin 5s linear infinite;
+                pointer-events: none;
+              }
+              .flow-speed {
+                position: relative;
+                z-index: 2;
+                font-size: 22px;
+                font-weight: 700;
+                color: #ffd08a;
+                text-shadow: 0 0 8px rgba(255,183,77,0.35);
+                line-height: 1.2;
+              }
+              .flow-reason {
+                font-size: 9px;
+                font-weight: 600;
+                color: rgba(255,183,77,0.8);
+                text-align: center;
+                line-height: 1.2;
+                margin-top: 2px;
+                max-width: 100px;
+              }
+              .flow-summer {
+                font-size: 12px;
+                font-weight: 600;
+                opacity: 0.9;
+                letter-spacing: 0.3px;
+              }
+              .flow-night {
+                font-size: 12px;
+                font-weight: 600;
+                opacity: 0.9;
+                letter-spacing: 0.3px;
+              }
+              @keyframes kwl-spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+              }
+      - type: custom:stack-in-card
+        mode: vertical
+        cards:
+          - type: entities
+            title: Filter Status
+            show_header_toggle: false
+            entities: []
+          - type: custom:button-card
+            show_name: false
+            show_icon: false
+            show_state: false
+            triggers_update:
+              - sensor.vallox_rs485_ventilation_ventilation_service_counter
+              - sensor.smart_kwl_filter_days_since_cleaning
+              - sensor.smart_kwl_filter_last_cleaned
+            custom_fields:
+              bars: |
+                [[[
+                  const svc = parseFloat(states['sensor.vallox_rs485_ventilation_ventilation_service_counter']?.state);
+                  const maxHealthDays = 360;
+                  const healthDays = Number.isFinite(svc) ? Math.round(svc * 30) : null;
+                  const healthPct = healthDays !== null ? Math.min(100, Math.max(0, healthDays / maxHealthDays * 100)) : 0;
+                  const healthColor = healthPct >= 60 ? '#4caf50' : healthPct >= 25 ? '#ff9800' : '#f44336';
+                  const healthLabel = healthDays !== null
+                    ? (healthDays <= 0 ? 'Replace filter now!' : `${healthDays} days remaining`)
+                    : 'Unknown';
+
+                  const ds = parseInt(states['sensor.smart_kwl_filter_days_since_cleaning']?.state);
+                  const lastCleaned = states['sensor.smart_kwl_filter_last_cleaned']?.state;
+                  const maxDays = 60;
+                  const daysUntil = Number.isFinite(ds) ? Math.max(0, maxDays - ds) : null;
+                  const cleanPct = daysUntil !== null ? Math.min(100, daysUntil / maxDays * 100) : 0;
+                  const cleaningIrrelevant = healthDays !== null && daysUntil !== null && healthDays < daysUntil;
+                  const cleanColor = cleaningIrrelevant ? 'rgba(150,150,150,0.3)' : (!Number.isFinite(ds) ? '#9e9e9e' : ds < 30 ? '#4caf50' : ds < 60 ? '#ff9800' : '#f44336');
+                  const cleanLabel = daysUntil === null
+                    ? 'Unknown'
+                    : daysUntil > 0
+                      ? `${daysUntil} days until next cleaning`
+                      : `Cleaning overdue by ${ds - maxDays} days`;
+                  const lastLine = lastCleaned && !['unknown','unavailable','none','None'].includes(lastCleaned)
+                    ? `<div class="fs-last">Last cleaned: ${lastCleaned}</div>` : '';
+                  return `
+                    <div class="fs-section">
+                      <div class="fs-heading">Filter Health</div>
+                      <div class="fs-bar-track">
+                        <div class="fs-bar-fill" style="width:${healthPct}%;background:${healthColor}"></div>
+                      </div>
+                      <div class="fs-info">${healthLabel}</div>
+                    </div>
+                    <div class="fs-section">
+                      <div class="fs-heading">Filter Cleaning</div>
+                      <div class="fs-bar-track">
+                        <div class="fs-bar-fill" style="width:${cleanPct}%;background:${cleanColor}"></div>
+                      </div>
+                      ${!cleaningIrrelevant ? `<div class="fs-info">${cleanLabel}</div>` : ''}
+                      ${lastLine}
+                    </div>
+                  `;
+                ]]]
+            styles:
+              card:
+                - padding: 8px 0 4px
+              custom_fields:
+                bars:
+                  - width: 100%
+                  - display: block
+            extra_styles: |
+              #container { display: block !important; }
+              .fs-section { width: 100%; margin-bottom: 14px; padding: 0 16px; box-sizing: border-box; }
+              .fs-heading { font-size: 11px; font-weight: 700; color: rgba(200,200,200,0.7); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px; }
+              .fs-bar-track { width: 100%; height: 14px; background: rgba(255,255,255,0.08); border-radius: 7px; overflow: hidden; }
+              .fs-bar-fill { height: 100%; border-radius: 7px; min-width: 4px; }
+              .fs-info { font-size: 13px; color: rgba(220,220,220,0.9); margin-top: 6px; }
+              .fs-last { font-size: 11px; color: rgba(160,160,160,0.7); margin-top: 3px; }
+          - type: custom:button-card
+            name: Filters Cleaned
+            show_icon: false
+            triggers_update:
+              - sensor.vallox_rs485_ventilation_ventilation_service_counter
+              - sensor.smart_kwl_filter_days_since_cleaning
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.smart_kwl_filters_cleaned
+            styles:
+              card:
+                - border-radius: 8px
+                - padding: 10px 0
+                - background-color: |
+                    [[[
+                      const svc = parseFloat(states['sensor.vallox_rs485_ventilation_ventilation_service_counter']?.state);
+                      const hd = Number.isFinite(svc) ? Math.round(svc * 30) : null;
+                      const ds = parseInt(states['sensor.smart_kwl_filter_days_since_cleaning']?.state);
+                      const du = Number.isFinite(ds) ? Math.max(0, 60 - ds) : null;
+                      return (hd !== null && du !== null && hd < du) ? 'rgba(128,128,128,0.08)' : 'rgba(76,175,80,0.12)';
+                    ]]]
+                - border: |
+                    [[[
+                      const svc = parseFloat(states['sensor.vallox_rs485_ventilation_ventilation_service_counter']?.state);
+                      const hd = Number.isFinite(svc) ? Math.round(svc * 30) : null;
+                      const ds = parseInt(states['sensor.smart_kwl_filter_days_since_cleaning']?.state);
+                      const du = Number.isFinite(ds) ? Math.max(0, 60 - ds) : null;
+                      return (hd !== null && du !== null && hd < du) ? '1px solid rgba(128,128,128,0.2)' : '1px solid rgba(76,175,80,0.35)';
+                    ]]]
+                - pointer-events: |
+                    [[[
+                      const svc = parseFloat(states['sensor.vallox_rs485_ventilation_ventilation_service_counter']?.state);
+                      const hd = Number.isFinite(svc) ? Math.round(svc * 30) : null;
+                      const ds = parseInt(states['sensor.smart_kwl_filter_days_since_cleaning']?.state);
+                      const du = Number.isFinite(ds) ? Math.max(0, 60 - ds) : null;
+                      return (hd !== null && du !== null && hd < du) ? 'none' : 'auto';
+                    ]]]
+              name:
+                - font-size: 14px
+                - font-weight: 600
+                - color: |
+                    [[[
+                      const svc = parseFloat(states['sensor.vallox_rs485_ventilation_ventilation_service_counter']?.state);
+                      const hd = Number.isFinite(svc) ? Math.round(svc * 30) : null;
+                      const ds = parseInt(states['sensor.smart_kwl_filter_days_since_cleaning']?.state);
+                      const du = Number.isFinite(ds) ? Math.max(0, 60 - ds) : null;
+                      return (hd !== null && du !== null && hd < du) ? 'rgba(255,255,255,0.25)' : '#4caf50';
+                    ]]]
+            extra_styles: |
+              :host { display: block !important; margin: 0 16px 12px !important; }
+      - type: custom:stack-in-card
+        mode: vertical
+        cards:
+          - type: entities
+            title: Manual Override
+            entities: []
           - type: heading
             heading: Fan Speed (1–8)
             heading_style: subtitle
           - type: grid
-            columns: 8
+            columns: 10
             square: false
             cards:
               - type: custom:button-card
+                show_name: false
+                show_icon: false
+                show_state: false
+                styles:
+                  card:
+                    - background: none
+                    - border: none
+                    - box-shadow: none
+                    - pointer-events: none
+                    - padding: 0
+              - type: custom:button-card
                 entity: number.smart_kwl_manual_override_level
-                name: "1"
+                name: '1'
                 show_icon: false
                 show_state: false
                 show_label: false
@@ -49,9 +599,9 @@ views:
                     value: 1
                 styles:
                   card:
-                    - width: 100%
                     - border-radius: 8px
-                    - padding: 16px 10px
+                    - box-sizing: border-box
+                    - padding: 16px 0px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
@@ -81,10 +631,9 @@ views:
                   name:
                     - font-size: 16px
                     - font-weight: 600
-
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_level
-                name: "2"
+                name: '2'
                 show_icon: false
                 show_state: false
                 show_label: false
@@ -97,9 +646,9 @@ views:
                     value: 2
                 styles:
                   card:
-                    - width: 100%
                     - border-radius: 8px
-                    - padding: 16px 10px
+                    - box-sizing: border-box
+                    - padding: 16px 0px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
@@ -129,10 +678,9 @@ views:
                   name:
                     - font-size: 16px
                     - font-weight: 600
-
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_level
-                name: "3"
+                name: '3'
                 show_icon: false
                 show_state: false
                 show_label: false
@@ -145,9 +693,9 @@ views:
                     value: 3
                 styles:
                   card:
-                    - width: 100%
                     - border-radius: 8px
-                    - padding: 16px 10px
+                    - box-sizing: border-box
+                    - padding: 16px 0px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
@@ -177,10 +725,9 @@ views:
                   name:
                     - font-size: 16px
                     - font-weight: 600
-
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_level
-                name: "4"
+                name: '4'
                 show_icon: false
                 show_state: false
                 show_label: false
@@ -193,9 +740,9 @@ views:
                     value: 4
                 styles:
                   card:
-                    - width: 100%
                     - border-radius: 8px
-                    - padding: 16px 10px
+                    - box-sizing: border-box
+                    - padding: 16px 0px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
@@ -225,10 +772,9 @@ views:
                   name:
                     - font-size: 16px
                     - font-weight: 600
-
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_level
-                name: "5"
+                name: '5'
                 show_icon: false
                 show_state: false
                 show_label: false
@@ -241,9 +787,9 @@ views:
                     value: 5
                 styles:
                   card:
-                    - width: 100%
                     - border-radius: 8px
-                    - padding: 16px 10px
+                    - box-sizing: border-box
+                    - padding: 16px 0px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
@@ -273,10 +819,9 @@ views:
                   name:
                     - font-size: 16px
                     - font-weight: 600
-
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_level
-                name: "6"
+                name: '6'
                 show_icon: false
                 show_state: false
                 show_label: false
@@ -289,9 +834,9 @@ views:
                     value: 6
                 styles:
                   card:
-                    - width: 100%
                     - border-radius: 8px
-                    - padding: 16px 10px
+                    - box-sizing: border-box
+                    - padding: 16px 0px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
@@ -321,10 +866,9 @@ views:
                   name:
                     - font-size: 16px
                     - font-weight: 600
-
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_level
-                name: "7"
+                name: '7'
                 show_icon: false
                 show_state: false
                 show_label: false
@@ -337,9 +881,9 @@ views:
                     value: 7
                 styles:
                   card:
-                    - width: 100%
                     - border-radius: 8px
-                    - padding: 16px 10px
+                    - box-sizing: border-box
+                    - padding: 16px 0px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
@@ -369,10 +913,9 @@ views:
                   name:
                     - font-size: 16px
                     - font-weight: 600
-
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_level
-                name: "8"
+                name: '8'
                 show_icon: false
                 show_state: false
                 show_label: false
@@ -385,9 +928,9 @@ views:
                     value: 8
                 styles:
                   card:
-                    - width: 100%
                     - border-radius: 8px
-                    - padding: 16px 10px
+                    - box-sizing: border-box
+                    - padding: 16px 0px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
@@ -417,17 +960,38 @@ views:
                   name:
                     - font-size: 16px
                     - font-weight: 600
-
+              - type: custom:button-card
+                show_name: false
+                show_icon: false
+                show_state: false
+                styles:
+                  card:
+                    - background: none
+                    - border: none
+                    - box-shadow: none
+                    - pointer-events: none
+                    - padding: 0
           - type: heading
             heading: Duration (hours)
             heading_style: subtitle
           - type: grid
-            columns: 8
+            columns: 10
             square: false
             cards:
               - type: custom:button-card
+                show_name: false
+                show_icon: false
+                show_state: false
+                styles:
+                  card:
+                    - background: none
+                    - border: none
+                    - box-shadow: none
+                    - pointer-events: none
+                    - padding: 0
+              - type: custom:button-card
                 entity: number.smart_kwl_manual_override_duration
-                name: "1h"
+                name: 1h
                 show_icon: false
                 show_state: false
                 show_label: false
@@ -440,9 +1004,9 @@ views:
                     value: 1
                 styles:
                   card:
-                    - width: 100%
                     - border-radius: 8px
-                    - padding: 16px 10px
+                    - box-sizing: border-box
+                    - padding: 16px 0px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
@@ -472,10 +1036,9 @@ views:
                   name:
                     - font-size: 16px
                     - font-weight: 600
-
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_duration
-                name: "2h"
+                name: 2h
                 show_icon: false
                 show_state: false
                 show_label: false
@@ -488,9 +1051,9 @@ views:
                     value: 2
                 styles:
                   card:
-                    - width: 100%
                     - border-radius: 8px
-                    - padding: 16px 10px
+                    - box-sizing: border-box
+                    - padding: 16px 0px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
@@ -520,10 +1083,9 @@ views:
                   name:
                     - font-size: 16px
                     - font-weight: 600
-
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_duration
-                name: "3h"
+                name: 3h
                 show_icon: false
                 show_state: false
                 show_label: false
@@ -536,9 +1098,9 @@ views:
                     value: 3
                 styles:
                   card:
-                    - width: 100%
                     - border-radius: 8px
-                    - padding: 16px 10px
+                    - box-sizing: border-box
+                    - padding: 16px 0px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
@@ -568,10 +1130,9 @@ views:
                   name:
                     - font-size: 16px
                     - font-weight: 600
-
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_duration
-                name: "4h"
+                name: 4h
                 show_icon: false
                 show_state: false
                 show_label: false
@@ -584,9 +1145,9 @@ views:
                     value: 4
                 styles:
                   card:
-                    - width: 100%
                     - border-radius: 8px
-                    - padding: 16px 10px
+                    - box-sizing: border-box
+                    - padding: 16px 0px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
@@ -616,10 +1177,9 @@ views:
                   name:
                     - font-size: 16px
                     - font-weight: 600
-
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_duration
-                name: "5h"
+                name: 5h
                 show_icon: false
                 show_state: false
                 show_label: false
@@ -632,9 +1192,9 @@ views:
                     value: 5
                 styles:
                   card:
-                    - width: 100%
                     - border-radius: 8px
-                    - padding: 16px 10px
+                    - box-sizing: border-box
+                    - padding: 16px 0px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
@@ -664,10 +1224,9 @@ views:
                   name:
                     - font-size: 16px
                     - font-weight: 600
-
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_duration
-                name: "6h"
+                name: 6h
                 show_icon: false
                 show_state: false
                 show_label: false
@@ -680,9 +1239,9 @@ views:
                     value: 6
                 styles:
                   card:
-                    - width: 100%
                     - border-radius: 8px
-                    - padding: 16px 10px
+                    - box-sizing: border-box
+                    - padding: 16px 0px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
@@ -712,10 +1271,9 @@ views:
                   name:
                     - font-size: 16px
                     - font-weight: 600
-
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_duration
-                name: "7h"
+                name: 7h
                 show_icon: false
                 show_state: false
                 show_label: false
@@ -728,9 +1286,9 @@ views:
                     value: 7
                 styles:
                   card:
-                    - width: 100%
                     - border-radius: 8px
-                    - padding: 16px 10px
+                    - box-sizing: border-box
+                    - padding: 16px 0px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
@@ -760,10 +1318,9 @@ views:
                   name:
                     - font-size: 16px
                     - font-weight: 600
-
               - type: custom:button-card
                 entity: number.smart_kwl_manual_override_duration
-                name: "8h"
+                name: 8h
                 show_icon: false
                 show_state: false
                 show_label: false
@@ -776,9 +1333,9 @@ views:
                     value: 8
                 styles:
                   card:
-                    - width: 100%
                     - border-radius: 8px
-                    - padding: 16px 10px
+                    - box-sizing: border-box
+                    - padding: 16px 0px
                     - font-size: 16px
                     - font-weight: 600
                     - background-color: |
@@ -808,14 +1365,25 @@ views:
                   name:
                     - font-size: 16px
                     - font-weight: 600
-
+              - type: custom:button-card
+                show_name: false
+                show_icon: false
+                show_state: false
+                styles:
+                  card:
+                    - background: none
+                    - border: none
+                    - box-shadow: none
+                    - pointer-events: none
+                    - padding: 0
           - type: grid
             columns: 2
             square: false
             cards:
               - type: custom:button-card
-                entity: button.smart_kwl_apply_manual_override
-                name: "▶  Start"
+                triggers_update:
+                  - binary_sensor.smart_kwl_manual_override_active
+                name: ▶  Start
                 show_icon: false
                 tap_action:
                   action: call-service
@@ -844,8 +1412,9 @@ views:
                           return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
                         ]]]
               - type: custom:button-card
-                entity: button.smart_kwl_cancel_manual_override
-                name: "✕  Cancel"
+                triggers_update:
+                  - binary_sensor.smart_kwl_manual_override_active
+                name: ✕  Cancel
                 show_icon: false
                 tap_action:
                   action: call-service
@@ -873,124 +1442,109 @@ views:
                           const active = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
                           return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'auto' : 'none';
                         ]]]
-
           - type: conditional
             conditions:
               - entity: binary_sensor.smart_kwl_manual_override_active
-                state: "on"
+                state: 'on'
             card:
               type: markdown
               content: >
-                {% set until = states('sensor.smart_kwl_manual_override_until') %}
-                {% if until not in ['unknown', 'unavailable', 'None', ''] %}
-                {% set end_ts = as_timestamp(until) | float %}
-                {% set now_ts = as_timestamp(now()) | float %}
-                {% set secs = [end_ts - now_ts, 0] | max %}
-                {% set h = (secs / 3600) | int %}
-                {% set m = ((secs % 3600) / 60) | int %}
-                {% set dh = states('number.smart_kwl_manual_override_duration') | float(1) %}
-                {% set total = dh * 3600 %}
-                {% set filled = [(secs / total * 20) | round(0, 'floor') | int, 20] | min %}
-                {% set empty = 20 - filled %}
-                <ha-icon icon="mdi:timer-outline"></ha-icon> **{{ '█' * filled }}{{ '░' * empty }}** {{ h ~ 'h ' if h > 0 else '' }}{{ m }}m remaining
-                {% else %}
-                <ha-icon icon="mdi:timer-outline"></ha-icon> Override active
-                {% endif %}
+                {% set until = states('sensor.smart_kwl_manual_override_until')
+                %} {% if until not in ['unknown', 'unavailable', 'None', ''] %}
+                {% set end_ts = as_timestamp(until) | float %} {% set now_ts =
+                as_timestamp(now()) | float %} {% set secs = [end_ts - now_ts,
+                0] | max %} {% set h = (secs / 3600) | int %} {% set m = ((secs
+                % 3600) / 60) | int %} {% set dh =
+                states('number.smart_kwl_manual_override_duration') | float(1)
+                %} {% set total = dh * 3600 %} {% set filled = [(secs / total *
+                20) | round(0, 'floor') | int, 20] | min %} {% set empty = 20 -
+                filled %} <ha-icon icon="mdi:timer-outline"></ha-icon> **{{ '█'
+                * filled }}{{ '░' * empty }}** {{ h ~ 'h ' if h > 0 else '' }}{{
+                m }}m remaining {% else %} <ha-icon
+                icon="mdi:timer-outline"></ha-icon> Override active {% endif %}
+          - type: markdown
+            title: Recent Changes (Last 5)
+            content: >
+              {% set changes = state_attr('sensor.check_log', 'change_history') or [] %}
 
-      - type: entities
-        title: Current Values
-        entities:
-          - entity: sensor.target_fan_level
-            name: Target Fan Level
-          - entity: sensor.target_fan_percentage
-            name: Target Fan Percentage
-          - entity: sensor.humidity_combined
-            name: Humidity Combined
-          - entity: sensor.co2_combined
-            name: CO2 Combined
+              {% if changes | count == 0 %}
 
-      - type: entities
-        title: Thresholds
-        entities:
-          - entity: sensor.humidity_low
-            name: Humidity Low
-          - entity: sensor.humidity_high
-            name: Humidity High
-          - entity: sensor.co2_low
-            name: CO2 Low
-          - entity: sensor.co2_high
-            name: CO2 High
+              No level changes recorded yet.
 
-      - type: heading
-        heading: Temperatures
+              {% else %}
 
-      - type: entities
-        title: Temperature Sensors
-        entities:
-          - entity: sensor.incoming_temperature
-            name: Incoming Temperature
-          - entity: sensor.outgoing_temperature
-            name: Outgoing Temperature
-          - entity: sensor.outside_temperature
-            name: Outside Temperature
-          - entity: sensor.exhaust_temperature
-            name: Exhaust Temperature
+              {% for change in changes[:5] %}
 
-      - type: history-graph
-        title: Temperature History (24h)
-        hours_to_show: 24
-        entities:
-          - sensor.incoming_temperature
-          - sensor.outgoing_temperature
-          - sensor.outside_temperature
-          - sensor.exhaust_temperature
+              {% set ts = change.at if change.at is defined else '' %}
 
-      - type: history-graph
-        title: Fan, Humidity, CO2 History (24h)
-        hours_to_show: 24
-        entities:
-          - sensor.target_fan_level
-          - sensor.humidity_combined
-          - sensor.co2_combined
+              {% set ts_fmt = ts[:10].split('-') | reverse | join('-') ~ ' ' ~ ts[11:16] if ts | length >= 16 else ts %}
 
-      - type: heading
-        heading: Filter Maintenance
+              {% set reason = change.reason | default('') %}
 
-      - type: entities
-        title: Filter Status
-        entities:
-          - entity: sensor.smart_kwl_filter_cleaning_status
-            name: Filter Cleaning Status
-          - entity: sensor.smart_kwl_filter_days_since_cleaning
-            name: Filter Days Since Cleaning
-          - entity: sensor.smart_kwl_filter_days_remaining
-            name: Filter Days Remaining
-          - entity: sensor.smart_kwl_filter_months_remaining
-            name: Filter Months Remaining
-          - entity: sensor.smart_kwl_filter_last_cleaned
-            name: Filter Last Cleaned
-          - entity: button.smart_kwl_filters_cleaned
-            name: Filters Cleaned
+              {% set sv = change.sensor_value | default('') %}
 
-      - type: heading
-        heading: Check Log
+              {% set st = change.sensor_threshold | default('') %}
 
-      - type: entities
-        title: Last Check
-        entities:
-          - entity: sensor.check_log
-            name: Last Check
+              {% if reason == 'manual_override' %}
 
-      - type: markdown
-        title: Recent Changes (Last 5)
-        content: |
-          {% set changes = state_attr('sensor.check_log', 'change_history') or [] %}
-          {% if changes | count == 0 %}
-          No level changes recorded yet.
-          {% else %}
-          {% for change in changes[:5] %}
-          {% set ts = change.at if change.at is defined else '' %}
-          {% set ts_fmt = ts[:10].split('-') | reverse | join('-') ~ ' ' ~ ts[11:16] if ts | length >= 16 else ts %}
-          **{{ ts_fmt }}** - Fan {{ change.before_level }} -> **{{ change.after_level }}** ({{ change.reason }})
-          {% endfor %}
-          {% endif %}
+              {% set desc = 'Manual override activated' %}
+
+              {% elif reason in ['manual_hardware_increase', 'manual_hardware_decrease'] %}
+
+              {% set desc = 'Manual override activated at Hardware Controller' %}
+
+              {% elif reason == 'manual' %}
+
+              {% set desc = 'Manual override activated' %}
+
+              {% elif reason.startswith('humidity') %}
+
+              {% if sv != '' and st != '' %}
+
+              {% set desc = 'Humidity (' ~ (sv | float | round(1)) ~ '%) exceeded threshold of ' ~ (st | float | round(1)) ~ '%' %}
+
+              {% elif sv != '' %}
+
+              {% set desc = 'Humidity (' ~ (sv | float | round(1)) ~ '%) too high' %}
+
+              {% else %}
+
+              {% set desc = 'Humidity too high' %}
+
+              {% endif %}
+
+              {% elif reason.startswith('co2') %}
+
+              {% if sv != '' and st != '' %}
+
+              {% set desc = 'CO₂ (' ~ (sv | float | round(0) | int) ~ ' ppm) exceeded threshold of ' ~ (st | float | round(0) | int) ~ ' ppm' %}
+
+              {% elif sv != '' %}
+
+              {% set desc = 'CO₂ (' ~ (sv | float | round(0) | int) ~ ' ppm) too high' %}
+
+              {% else %}
+
+              {% set desc = 'CO₂ too high' %}
+
+              {% endif %}
+
+              {% elif reason.startswith('night') %}
+
+              {% set desc = 'Night mode active' %}
+
+              {% elif reason.startswith('idle') %}
+
+              {% set desc = 'Returned to base speed (idle)' %}
+
+              {% else %}
+
+              {% set desc = reason %}
+
+              {% endif %}
+
+              **{{ ts_fmt }}** — Fan {{ change.before_level }} → **{{ change.after_level }}**<br>*{{ desc }}*
+
+              {% endfor %}
+
+              {% endif %}

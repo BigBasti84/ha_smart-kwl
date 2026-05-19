@@ -57,6 +57,8 @@ class ControlDecision:
     level: int
     percentage: int
     reason: str
+    sensor_value: float | None = None
+    sensor_threshold: float | None = None
 
 
 @dataclass(slots=True)
@@ -807,6 +809,8 @@ class SmartKwlController:
                     after_percentage,
                     decision.reason,
                     "skipped_interval",
+                    sensor_value=decision.sensor_value,
+                    sensor_threshold=decision.sensor_threshold,
                 ),
             )
             self._notify()
@@ -824,6 +828,8 @@ class SmartKwlController:
                     after_percentage,
                     decision.reason,
                     "unchanged",
+                    sensor_value=decision.sensor_value,
+                    sensor_threshold=decision.sensor_threshold,
                 ),
             )
             self._notify()
@@ -853,6 +859,8 @@ class SmartKwlController:
                     after_percentage,
                     decision.reason,
                     "applied",
+                    sensor_value=decision.sensor_value,
+                    sensor_threshold=decision.sensor_threshold,
                 ),
             )
         else:
@@ -866,6 +874,8 @@ class SmartKwlController:
                     after_percentage,
                     decision.reason,
                     "verification_failed",
+                    sensor_value=decision.sensor_value,
+                    sensor_threshold=decision.sensor_threshold,
                 ),
             )
         self._notify()
@@ -950,8 +960,24 @@ class SmartKwlController:
 
         target_percentage = self._level_to_percentage(target_level, max_level)
         detail_lines.append("target | level=%s | percentage=%s | reason=%s" % (target_level, target_percentage, reason))
+
+        sensor_value: float | None = None
+        sensor_threshold: float | None = None
+        if sensor_reason == "humidity":
+            sensor_value = humidity_current
+            sensor_threshold = humidity_high
+        elif sensor_reason == "co2":
+            sensor_value = co2_current
+            sensor_threshold = co2_high
+
         return ControlEvaluation(
-            decision=ControlDecision(level=target_level, percentage=target_percentage, reason=reason),
+            decision=ControlDecision(
+                level=target_level,
+                percentage=target_percentage,
+                reason=reason,
+                sensor_value=sensor_value,
+                sensor_threshold=sensor_threshold,
+            ),
             detail_lines=detail_lines,
         )
 
@@ -1133,6 +1159,8 @@ class SmartKwlController:
                 int(change["after_level"]),
                 change["reason"],
                 change["status"],
+                sensor_value=change.get("sensor_value"),
+                sensor_threshold=change.get("sensor_threshold"),
             )
 
     def _append_change_history_event(
@@ -1142,19 +1170,23 @@ class SmartKwlController:
         after_level: int,
         reason: str,
         status: str,
+        sensor_value: str | None = None,
+        sensor_threshold: str | None = None,
     ) -> None:
         """Append a normalized level-change event for dashboard history cards."""
         change_history: list[dict[str, str]] = list(self._status.get("change_history", []))
-        change_history.insert(
-            0,
-            {
-                "at": timestamp,
-                "before_level": str(before_level),
-                "after_level": str(after_level),
-                "reason": reason,
-                "status": status,
-            },
-        )
+        entry: dict[str, str] = {
+            "at": timestamp,
+            "before_level": str(before_level),
+            "after_level": str(after_level),
+            "reason": reason,
+            "status": status,
+        }
+        if sensor_value is not None:
+            entry["sensor_value"] = sensor_value
+        if sensor_threshold is not None:
+            entry["sensor_threshold"] = sensor_threshold
+        change_history.insert(0, entry)
         # Keep the latest 50 level-change events for dashboard display.
         self._status["change_history"] = change_history[:50]
 
@@ -1184,13 +1216,20 @@ class SmartKwlController:
         if before_level == after_level:
             return None
 
-        return {
+        result: dict[str, str] = {
             "at": timestamp,
             "before_level": before_level,
             "after_level": after_level,
             "reason": reason,
             "status": status,
         }
+        sensor_value = _extract("sensor_value")
+        sensor_threshold = _extract("sensor_threshold")
+        if sensor_value is not None:
+            result["sensor_value"] = sensor_value
+        if sensor_threshold is not None:
+            result["sensor_threshold"] = sensor_threshold
+        return result
 
     @staticmethod
     def _fmt_level(level: int | None) -> str:
@@ -1208,8 +1247,10 @@ class SmartKwlController:
         after_percentage: int | None,
         reason: str,
         status: str,
+        sensor_value: float | None = None,
+        sensor_threshold: float | None = None,
     ) -> str:
-        return (
+        base = (
             "action | before_level=%s (%s) | after_level=%s (%s) | reason=%s | status=%s"
             % (
                 self._fmt_level(before_level),
@@ -1220,6 +1261,11 @@ class SmartKwlController:
                 status,
             )
         )
+        if sensor_value is not None:
+            base += " | sensor_value=%.2f" % sensor_value
+        if sensor_threshold is not None:
+            base += " | sensor_threshold=%.2f" % sensor_threshold
+        return base
 
     @staticmethod
     def _percentage_to_level(percentage: int | None, max_level: int) -> int | None:
