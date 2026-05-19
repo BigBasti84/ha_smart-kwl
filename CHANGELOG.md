@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1] - 2026-05-19
+### Fixed
+- Replaced non-thread-safe task scheduling paths in the controller (`hass.async_create_task` from non-loop context) with thread-safe job scheduling to avoid Home Assistant runtime warnings and un-awaited coroutine side effects.
+- Added target-entity readiness guard to defer fan/climate writes until startup state is valid, reducing transient `fan_mode None` and failed verification warnings.
+- Reduced startup warning noise for optional away/summer sensors by treating temporary unavailable states as non-fatal during initialization.
+- Dashboard v3 temperature bubbles now display integer values (rounded) instead of one decimal place.
+- Dashboard v3 mobile action buttons now use stable MDI icons/text for Start/Cancel and hardened state-safe styling so they match desktop rendering on iOS.
+
 ## [0.2.0] - 2026-05-19
 ### Added
 - Enhanced temperature flow card with fan-speed reason text and explicit summer/night mode status labels.

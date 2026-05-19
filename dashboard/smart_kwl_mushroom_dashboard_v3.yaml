@@ -180,28 +180,28 @@ views:
                 [[[
                   const s = states['sensor.outside_temperature']?.state;
                   const n = parseFloat(s);
-                  const value = Number.isFinite(n) ? `${n.toFixed(1)} °C` : (s || '-');
+                  const value = Number.isFinite(n) ? `${Math.round(n)} °C` : (s || '-');
                   return `<div class="flow-bubble flow-left"><ha-icon icon="mdi:weather-windy" class="flow-icon"></ha-icon><div class="flow-value">${value}</div></div>`;
                 ]]]
               exhaust_bubble: |
                 [[[
                   const s = states['sensor.exhaust_temperature']?.state;
                   const n = parseFloat(s);
-                  const value = Number.isFinite(n) ? `${n.toFixed(1)} °C` : (s || '-');
+                  const value = Number.isFinite(n) ? `${Math.round(n)} °C` : (s || '-');
                   return `<div class="flow-bubble flow-left"><ha-icon icon="mdi:air-filter" class="flow-icon"></ha-icon><div class="flow-value">${value}</div></div>`;
                 ]]]
               incoming_bubble: |
                 [[[
                   const s = states['sensor.incoming_temperature']?.state;
                   const n = parseFloat(s);
-                  const value = Number.isFinite(n) ? `${n.toFixed(1)} °C` : (s || '-');
+                  const value = Number.isFinite(n) ? `${Math.round(n)} °C` : (s || '-');
                   return `<div class="flow-bubble flow-right"><ha-icon icon="mdi:arrow-collapse-left" class="flow-icon"></ha-icon><div class="flow-value">${value}</div></div>`;
                 ]]]
               outgoing_bubble: |
                 [[[
                   const s = states['sensor.outgoing_temperature']?.state;
                   const n = parseFloat(s);
-                  const value = Number.isFinite(n) ? `${n.toFixed(1)} °C` : (s || '-');
+                  const value = Number.isFinite(n) ? `${Math.round(n)} °C` : (s || '-');
                   return `<div class="flow-bubble flow-right"><ha-icon icon="mdi:arrow-expand-right" class="flow-icon"></ha-icon><div class="flow-value">${value}</div></div>`;
                 ]]]
               outside_label: |
@@ -1383,64 +1383,96 @@ views:
               - type: custom:button-card
                 triggers_update:
                   - binary_sensor.smart_kwl_manual_override_active
-                name: ▶  Start
-                show_icon: false
+                name: Start
+                icon: mdi:play
+                show_icon: true
                 tap_action:
                   action: call-service
                   service: button.press
                   target:
                     entity_id: button.smart_kwl_apply_manual_override
                 styles:
+                  icon:
+                    - width: 20px
+                    - color: |
+                        [[[ 
+                          const disabled = states['binary_sensor.smart_kwl_manual_override_active']?.state === 'on';
+                          return disabled ? 'rgba(255,255,255,0.25)' : '#ffffff';
+                        ]]]
                   card:
                     - border-radius: 10px
+                    - border: 1px solid
+                    - box-sizing: border-box
+                    - box-shadow: none
                     - padding: 12px 0px
                     - font-size: 18px
                     - font-weight: 500
                     - background-color: |
                         [[[
-                          const disabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          const disabled = states['binary_sensor.smart_kwl_manual_override_active']?.state === 'on';
                           return disabled ? 'rgba(128,128,128,0.08)' : 'rgba(76,175,80,0.95)';
+                        ]]]
+                    - border-color: |
+                        [[[ 
+                          const disabled = states['binary_sensor.smart_kwl_manual_override_active']?.state === 'on';
+                          return disabled ? 'rgba(128,128,128,0.2)' : 'rgba(76,175,80,0.5)';
                         ]]]
                     - color: |
                         [[[
-                          const disabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          const disabled = states['binary_sensor.smart_kwl_manual_override_active']?.state === 'on';
                           return disabled ? 'rgba(255,255,255,0.25)' : '#ffffff';
                         ]]]
                     - pointer-events: |
                         [[[
-                          const disabled = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
-                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'none' : 'auto';
+                          const disabled = states['binary_sensor.smart_kwl_manual_override_active']?.state === 'on';
+                          return disabled ? 'none' : 'auto';
                         ]]]
               - type: custom:button-card
                 triggers_update:
                   - binary_sensor.smart_kwl_manual_override_active
-                name: ✕  Cancel
-                show_icon: false
+                name: Cancel
+                icon: mdi:close
+                show_icon: true
                 tap_action:
                   action: call-service
                   service: button.press
                   target:
                     entity_id: button.smart_kwl_cancel_manual_override
                 styles:
+                  icon:
+                    - width: 20px
+                    - color: |
+                        [[[ 
+                          const active = states['binary_sensor.smart_kwl_manual_override_active']?.state === 'on';
+                          return active ? '#ffffff' : 'rgba(255,255,255,0.25)';
+                        ]]]
                   card:
                     - border-radius: 10px
+                    - border: 1px solid
+                    - box-sizing: border-box
+                    - box-shadow: none
                     - padding: 12px 0px
                     - font-size: 18px
                     - font-weight: 500
                     - background-color: |
                         [[[
-                          const active = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          const active = states['binary_sensor.smart_kwl_manual_override_active']?.state === 'on';
                           return active ? 'rgba(244,67,54,0.92)' : 'rgba(128,128,128,0.08)';
+                        ]]]
+                    - border-color: |
+                        [[[ 
+                          const active = states['binary_sensor.smart_kwl_manual_override_active']?.state === 'on';
+                          return active ? 'rgba(244,67,54,0.55)' : 'rgba(128,128,128,0.2)';
                         ]]]
                     - color: |
                         [[[
-                          const active = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
+                          const active = states['binary_sensor.smart_kwl_manual_override_active']?.state === 'on';
                           return active ? '#ffffff' : 'rgba(255,255,255,0.25)';
                         ]]]
                     - pointer-events: |
                         [[[
-                          const active = states['binary_sensor.smart_kwl_manual_override_active'].state === 'on';
-                          return states['binary_sensor.smart_kwl_manual_override_active'].state === 'on' ? 'auto' : 'none';
+                          const active = states['binary_sensor.smart_kwl_manual_override_active']?.state === 'on';
+                          return active ? 'auto' : 'none';
                         ]]]
           - type: conditional
             conditions:

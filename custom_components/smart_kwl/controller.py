@@ -216,7 +216,7 @@ class SmartKwlController:
     def _async_post_start_check(self, _now) -> None:
         """Re-run enforcement check shortly after startup/reload."""
         self._unsub_post_start_check = None
-        self.hass.async_create_task(self._async_recalculate(force=True))
+        self._schedule_recalculate(force=True)
 
     def add_listener(self, listener: Callable[[], None]) -> Callable[[], None]:
         """Register a callback for state updates used by info entities."""
@@ -647,7 +647,7 @@ class SmartKwlController:
             self._status["manual_override_until"] = None
             detail_lines.append("manual_override | active=no | reason=expired")
             if self._override_store is not None:
-                self.hass.async_create_task(self._override_store.async_clear_override())
+                self.hass.add_job(self._override_store.async_clear_override())
 
         self._status["manual_override_active"] = False
         self._status["manual_override_level"] = None
@@ -743,11 +743,7 @@ class SmartKwlController:
 
     def _schedule_recalculate(self, force: bool) -> None:
         """Schedule recalculation on the Home Assistant event loop."""
-
-        def _run() -> None:
-            self.hass.async_create_task(self._async_recalculate(force=force))
-
-        self.hass.loop.call_soon_threadsafe(_run)
+        self.hass.add_job(self._async_recalculate(force=force))
 
     def _async_handle_state_event(self, event) -> None:
         fan_entity = self._config(CONF_FAN_ENTITY)
@@ -772,7 +768,8 @@ class SmartKwlController:
 
         decision = evaluation.decision
         fan_entity = self._config(CONF_FAN_ENTITY)
-        before_percentage = self._fan_percentage(fan_entity)
+        target_ready = self._is_target_entity_ready(fan_entity)
+        before_percentage = self._fan_percentage(fan_entity) if target_ready else None
         before_level = self._percentage_to_level(before_percentage, int(self._config(CONF_MAX_FAN_LEVEL, 8)))
 
         now = dt_util.utcnow()
@@ -782,6 +779,26 @@ class SmartKwlController:
         self._status["target_level"] = decision.level
         self._status["target_percentage"] = decision.percentage
         self._status["last_reason"] = decision.reason
+
+        if not target_ready:
+            evaluation.detail_lines.append(
+                "sync_check | target_entity=%s | ready=no | action=defer" % fan_entity
+            )
+            self._append_check_run(
+                evaluation.detail_lines,
+                self._action_line(
+                    before_level,
+                    before_percentage,
+                    before_level,
+                    before_percentage,
+                    decision.reason,
+                    "target_not_ready",
+                    sensor_value=decision.sensor_value,
+                    sensor_threshold=decision.sensor_threshold,
+                ),
+            )
+            self._notify()
+            return
 
         # Compare computed target with currently observed fan level.
         actual_matches_target = before_level is not None and before_level == decision.level
@@ -890,7 +907,7 @@ class SmartKwlController:
 
         away_level = int(self._config(CONF_AWAY_FAN_LEVEL, min_level))
         away_enabled = bool(self._config(CONF_AWAY_ENABLED, False))
-        away_sensor = self._state(self._config(CONF_AWAY_SENSOR)) if away_enabled else None
+        away_sensor = self._state(self._config(CONF_AWAY_SENSOR), warn_unavailable=False) if away_enabled else None
         away_active = away_enabled and away_sensor is not None and away_sensor.state == STATE_ON
 
         base_level = away_level if away_active else default_level
@@ -930,7 +947,7 @@ class SmartKwlController:
         )
 
         summer_sensor_entity = self._config(CONF_SUMMER_MODE_SENSOR)
-        summer_state = self._state(summer_sensor_entity)
+        summer_state = self._state(summer_sensor_entity, warn_unavailable=False)
         summer_active = summer_state is not None and summer_state.state == STATE_ON
         self._status["summer_mode_active"] = summer_active
         detail_lines.append(
@@ -1142,6 +1159,22 @@ class SmartKwlController:
             )
             return None
 
+    def _is_target_entity_ready(self, fan_entity: str) -> bool:
+        """Return whether the configured target entity is ready for writes/verification."""
+        fan_state = self.hass.states.get(fan_entity)
+        if fan_state is None:
+            return False
+        if fan_state.state in {STATE_UNKNOWN, STATE_UNAVAILABLE}:
+            return False
+
+        if fan_entity.startswith("climate."):
+            return fan_state.attributes.get("fan_mode") is not None
+
+        if fan_entity.startswith("fan."):
+            return fan_state.state == STATE_OFF or fan_state.attributes.get("percentage") is not None
+
+        return True
+
     def _append_check_run(self, detail_lines: list[str], action_line: str) -> None:
         timestamp = dt_util.now().isoformat()
         lines = [f"check_run | at={timestamp}"] + detail_lines + [action_line]
@@ -1279,15 +1312,17 @@ class SmartKwlController:
             return 0
         return max(1, min(100, int(round((level / max_level) * 100))))
 
-    def _state(self, entity_id: str | None) -> State | None:
+    def _state(self, entity_id: str | None, warn_unavailable: bool = True) -> State | None:
         if not entity_id:
             return None
         state = self.hass.states.get(entity_id)
         if state is None:
-            self._warn_unavailable_once(entity_id, f"Entity {entity_id} is missing/unavailable. Falling back until it returns.")
+            if warn_unavailable:
+                self._warn_unavailable_once(entity_id, f"Entity {entity_id} is missing/unavailable. Falling back until it returns.")
             return None
         if state.state in {STATE_UNKNOWN, STATE_UNAVAILABLE}:
-            self._warn_unavailable_once(entity_id, f"Entity {entity_id} state is {state.state}. Falling back until it becomes available.")
+            if warn_unavailable:
+                self._warn_unavailable_once(entity_id, f"Entity {entity_id} state is {state.state}. Falling back until it becomes available.")
             return None
         self._clear_unavailable_warning(entity_id)
         return state

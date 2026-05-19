@@ -106,13 +106,13 @@ It shows the latest check runs, sensor evaluations, and final actions.
 
 - Integration version is defined in custom_components/smart_kwl/manifest.json.
 - HACS updates are delivered through GitHub releases/tags.
-- Current development release: 0.2.0.
+- Current development release: 0.2.1.
 
 Workflow for next updates:
 
 1. Commit changes.
 2. Bump manifest version.
-3. Create and push a new tag (for example v0.2.0).
+3. Create and push a new tag (for example v0.2.1).
 4. HACS will offer the update.
 
 ## Troubleshooting
