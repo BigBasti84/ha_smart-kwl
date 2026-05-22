@@ -3,7 +3,7 @@
   "config": {
     "step": {
       "user": {
-        "description": "Fan levels use discrete steps {level_min}..{level_max}. Optional fields: Away sensor/fan level, Summer mode sensor, and all temperature sensors. Temperature mapping: {incoming_expl} {outgoing_expl} {outside_expl} {exhaust_expl}",
+        "description": "Fan levels use discrete steps {level_min}..{level_max}. Optional fields: Away sensor/fan level, Summer mode sensor, summer heat settings, and all temperature sensors. Temperature mapping: {incoming_expl} {outgoing_expl} {outside_expl} {exhaust_expl} {summer_heat_expl}",
         "data": {
           "name": "Name",
           "fan_entity": "Target entity (fan or climate)",
@@ -20,6 +20,8 @@
           "night_end": "Night end",
           "night_max_fan_level": "Night max fan level",
           "night_summer_fan_level": "Night summer fan level",
+          "summer_heat_delta": "Summer heat delta above incoming (degrees)",
+          "summer_heat_fan_level": "Summer heat fan level",
           "summer_mode_sensor": "Summer mode binary sensor",
           "check_interval": "Control check interval (seconds)",
           "manual_increase_hold_hours": "Manual increase hold time (hours)",
@@ -32,7 +34,7 @@
         }
       },
       "init": {
-        "description": "Fan levels use discrete steps {level_min}..{level_max}. Optional fields: Away sensor/fan level, Summer mode sensor, and all temperature sensors. Temperature mapping: {incoming_expl} {outgoing_expl} {outside_expl} {exhaust_expl}",
+        "description": "Fan levels use discrete steps {level_min}..{level_max}. Optional fields: Away sensor/fan level, Summer mode sensor, summer heat settings, and all temperature sensors. Temperature mapping: {incoming_expl} {outgoing_expl} {outside_expl} {exhaust_expl} {summer_heat_expl}",
         "data": {
           "name": "Name",
           "fan_entity": "Target entity (fan or climate)",
@@ -49,6 +51,8 @@
           "night_end": "Night end",
           "night_max_fan_level": "Night max fan level",
           "night_summer_fan_level": "Night summer fan level",
+          "summer_heat_delta": "Summer heat delta above incoming (degrees)",
+          "summer_heat_fan_level": "Summer heat fan level",
           "summer_mode_sensor": "Summer mode binary sensor",
           "check_interval": "Control check interval (seconds)",
           "manual_increase_hold_hours": "Manual increase hold time (hours)",
@@ -85,6 +89,8 @@
       "night_max_range": "Night max fan level must be within min and max fan levels.",
       "night_summer_range": "Night summer fan level must be within min and max fan levels.",
       "night_relation": "Night max fan level must be higher than night summer fan level.",
+      "summer_heat_range": "Summer heat fan level must be within min and max fan levels.",
+      "summer_heat_relation": "Summer heat fan level must not be higher than the default fan level.",
       "sensor_range": "Sensor minimum must be lower than sensor maximum.",
       "no_control_sensors": "At least one humidity or CO2 sensor is required."
     }

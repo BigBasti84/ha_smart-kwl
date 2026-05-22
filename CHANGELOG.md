@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.2] - 2026-05-22
+### Fixed
+- Added summer-heat base-speed handling: when outside air is hotter than incoming air by the configured delta, the controller lowers the default fan base level to the configured summer heat level.
+- Preserved humidity and CO2 priority above the base level while suppressing false sensor reasons when the computed target remains at the configured default speed.
+- Dashboard flow chart and recent changes now only show a reason when the fan target differs from the configured default speed.
+
 ## [0.2.1] - 2026-05-19
 ### Fixed
 - Replaced non-thread-safe task scheduling paths in the controller (`hass.async_create_task` from non-loop context) with thread-safe job scheduling to avoid Home Assistant runtime warnings and un-awaited coroutine side effects.

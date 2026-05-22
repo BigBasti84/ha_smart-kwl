@@ -227,10 +227,29 @@ views:
                   const speedNum = parseFloat(speedRaw);
                   const speed = Number.isFinite(speedNum) ? Math.round(speedNum) : '-';
                   const overrideOn = states['binary_sensor.smart_kwl_manual_override_active']?.state === 'on';
-                  const changeHistory = states['sensor.check_log']?.attributes?.change_history;
-                  const latestReason = changeHistory?.[0]?.reason || '';
-                  const reasonMap = { 'humidity': 'High Humidity', 'co2': 'High CO2', 'manual_override': 'Manual Override', 'manual': 'Manual Override' };
-                  const reasonText = overrideOn ? 'Manual Override' : (reasonMap[latestReason] || '');
+                  const checkLog = states['sensor.check_log'];
+                  const changeHistory = checkLog?.attributes?.change_history;
+                  const lastReasonAttr = checkLog?.attributes?.last_reason;
+                  const targetLevelAttr = checkLog?.attributes?.target_level;
+                  const defaultLevelAttr = checkLog?.attributes?.default_level;
+                  const targetLevel = parseFloat(targetLevelAttr);
+                  const defaultLevel = parseFloat(defaultLevelAttr);
+                  const showReason = Number.isFinite(targetLevel) && Number.isFinite(defaultLevel) ? targetLevel !== defaultLevel : true;
+                  const latestReasonRaw = changeHistory?.[0]?.reason || lastReasonAttr || '';
+                  const latestReason = String(latestReasonRaw).toLowerCase();
+
+                  let reasonText = '';
+                  if (showReason && (overrideOn || latestReason.startsWith('manual'))) {
+                    reasonText = 'Manual Override';
+                  } else if (showReason && latestReason.startsWith('summer_heat')) {
+                    reasonText = 'Summer Heat';
+                  } else if (showReason && latestReason.startsWith('co2')) {
+                    reasonText = 'CO2 too high';
+                  } else if (showReason && latestReason.startsWith('humidity')) {
+                    reasonText = 'Humidity too high';
+                  } else if (showReason && latestReason.startsWith('night')) {
+                    reasonText = 'Night mode active';
+                  }
                   return `
                     <div class="flow-center-bubble ${fanOn ? 'on' : 'off'}">
                       <div class="flow-center-inner">
@@ -1498,6 +1517,7 @@ views:
             title: Recent Changes (Last 5)
             content: >
               {% set changes = state_attr('sensor.check_log', 'change_history') or [] %}
+              {% set default_level = state_attr('sensor.check_log', 'default_level') | int(2) %}
 
               {% if changes | count == 0 %}
 
@@ -1512,12 +1532,17 @@ views:
               {% set ts_fmt = ts[:10].split('-') | reverse | join('-') ~ ' ' ~ ts[11:16] if ts | length >= 16 else ts %}
 
               {% set reason = change.reason | default('') %}
+              {% set after_level = change.after_level | int(0) %}
 
               {% set sv = change.sensor_value | default('') %}
 
               {% set st = change.sensor_threshold | default('') %}
 
-              {% if reason == 'manual_override' %}
+              {% if after_level == default_level %}
+
+              {% set desc = '' %}
+
+              {% elif reason == 'manual_override' %}
 
               {% set desc = 'Manual override activated' %}
 
@@ -1565,6 +1590,10 @@ views:
 
               {% set desc = 'Night mode active' %}
 
+              {% elif reason.startswith('summer_heat') %}
+
+              {% set desc = 'Summer heat mode active' %}
+
               {% elif reason.startswith('idle') %}
 
               {% set desc = 'Returned to base speed (idle)' %}
@@ -1575,7 +1604,15 @@ views:
 
               {% endif %}
 
+              {% if desc != '' %}
+
               **{{ ts_fmt }}** — Fan {{ change.before_level }} → **{{ change.after_level }}**<br>*{{ desc }}*
+
+              {% else %}
+
+              **{{ ts_fmt }}** — Fan {{ change.before_level }} → **{{ change.after_level }}**
+
+              {% endif %}
 
               {% endfor %}
 

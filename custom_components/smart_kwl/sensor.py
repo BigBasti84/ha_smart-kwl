@@ -153,6 +153,11 @@ class SmartKwlCheckLogSensor(SmartKwlBaseEntity, SensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         return {
+            "target_level": self._controller.status.get("target_level"),
+            "default_level": self._controller.status.get("default_level"),
+            "base_level": self._controller.status.get("base_level"),
+            "summer_heat_active": self._controller.status.get("summer_heat_active"),
+            "last_reason": self._controller.status.get("last_reason"),
             "last_check_lines": self._controller.status.get("last_check_lines", []),
             "check_history": self._controller.status.get("check_history", []),
             "change_history": self._controller.status.get("change_history", []),

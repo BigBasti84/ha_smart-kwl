@@ -33,6 +33,10 @@ from .const import (
     CONF_NIGHT_MAX_FAN_LEVEL,
     CONF_NIGHT_START,
     CONF_NIGHT_SUMMER_FAN_LEVEL,
+    CONF_INCOMING_TEMPERATURE_ENTITY,
+    CONF_OUTSIDE_TEMPERATURE_ENTITY,
+    CONF_SUMMER_HEAT_DELTA,
+    CONF_SUMMER_HEAT_FAN_LEVEL,
     CONF_SENSOR_ENTITY_ID,
     CONF_SENSOR_MAX,
     CONF_SENSOR_MIN,
@@ -40,6 +44,8 @@ from .const import (
     DEFAULT_FILTER_LIFETIME_ENTITY,
     DEFAULT_MANUAL_INCREASE_HOLD_HOURS,
     DEFAULT_MANUAL_OVERRIDE_DEFAULT_HOURS,
+    DEFAULT_SUMMER_HEAT_DELTA,
+    DEFAULT_SUMMER_HEAT_FAN_LEVEL,
     FILTER_CLEAN_INTERVAL_DAYS,
     FILTER_LIFETIME_WARN_DAYS,
     FILTER_WARN_DAYS,
@@ -103,6 +109,9 @@ class SmartKwlController:
             "last_reason": "init",
             "target_level": None,
             "target_percentage": None,
+            "default_level": None,
+            "base_level": None,
+            "summer_heat_active": False,
             "humidity_combined": None,
             "humidity_low": None,
             "humidity_high": None,
@@ -901,6 +910,7 @@ class SmartKwlController:
         min_level = int(self._config(CONF_MIN_FAN_LEVEL, 1))
         max_level = int(self._config(CONF_MAX_FAN_LEVEL, 8))
         default_level = int(self._config(CONF_DEFAULT_FAN_LEVEL, min_level))
+        self._status["default_level"] = default_level
 
         if min_level > max_level:
             return None
@@ -913,7 +923,38 @@ class SmartKwlController:
         base_level = away_level if away_active else default_level
         base_level = max(min_level, min(max_level, base_level))
 
+        summer_heat_delta = float(self._config(CONF_SUMMER_HEAT_DELTA, DEFAULT_SUMMER_HEAT_DELTA))
+        summer_heat_level = max(
+            min_level,
+            min(max_level, int(self._config(CONF_SUMMER_HEAT_FAN_LEVEL, DEFAULT_SUMMER_HEAT_FAN_LEVEL))),
+        )
+        outside_entity = self._config(CONF_OUTSIDE_TEMPERATURE_ENTITY)
+        incoming_entity = self._config(CONF_INCOMING_TEMPERATURE_ENTITY)
+        outside_state = self._state(outside_entity, warn_unavailable=False)
+        incoming_state = self._state(incoming_entity, warn_unavailable=False)
+        outside_temp = self._float_state(outside_state) if outside_state is not None else None
+        incoming_temp = self._float_state(incoming_state) if incoming_state is not None else None
+        summer_heat_active = False
+        if not away_active and outside_temp is not None and incoming_temp is not None:
+            summer_heat_active = (outside_temp - incoming_temp) > summer_heat_delta
+            if summer_heat_active:
+                base_level = min(base_level, summer_heat_level)
+
+        self._status["base_level"] = base_level
+        self._status["summer_heat_active"] = summer_heat_active
+
         detail_lines: list[str] = []
+        detail_lines.append(
+            "summer_heat_check | outside=%s | incoming=%s | delta=%.2f | threshold=%.2f | active=%s | base_level=%s"
+            % (
+                "%.2f" % outside_temp if outside_temp is not None else "unavailable",
+                "%.2f" % incoming_temp if incoming_temp is not None else "unavailable",
+                (outside_temp - incoming_temp) if outside_temp is not None and incoming_temp is not None else 0.0,
+                summer_heat_delta,
+                "yes" if summer_heat_active else "no",
+                base_level,
+            )
+        )
         humidity_ratio, humidity_lines, humidity_current, humidity_low, humidity_high = self._evaluate_sensor_group(
             "humidity", self._config(CONF_HUMIDITY_CONFIGS, [])
         )
@@ -940,7 +981,10 @@ class SmartKwlController:
 
         target_level = base_level + int(round(demand_ratio * (max_level - base_level)))
         target_level = max(min_level, min(max_level, target_level))
-        reason = f"{sensor_reason}_base_{'away' if away_active else 'default'}"
+        base_label = "away" if away_active else "default"
+        reason = f"{sensor_reason}_base_{base_label}"
+        if target_level <= base_level:
+            reason = f"summer_heat_base_{base_label}" if summer_heat_active else f"idle_base_{base_label}"
         detail_lines.append(
             "summary | base_level=%s | humidity_ratio=%.2f | co2_ratio=%.2f | demand_ratio=%.2f | pre_night_level=%s"
             % (base_level, humidity_ratio, co2_ratio, demand_ratio, target_level)
@@ -980,10 +1024,10 @@ class SmartKwlController:
 
         sensor_value: float | None = None
         sensor_threshold: float | None = None
-        if sensor_reason == "humidity":
+        if target_level > base_level and sensor_reason == "humidity":
             sensor_value = humidity_current
             sensor_threshold = humidity_high
-        elif sensor_reason == "co2":
+        elif target_level > base_level and sensor_reason == "co2":
             sensor_value = co2_current
             sensor_threshold = co2_high
 

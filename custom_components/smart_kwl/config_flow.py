@@ -33,6 +33,8 @@ from .const import (
     CONF_NIGHT_MAX_FAN_LEVEL,
     CONF_NIGHT_START,
     CONF_NIGHT_SUMMER_FAN_LEVEL,
+    CONF_SUMMER_HEAT_DELTA,
+    CONF_SUMMER_HEAT_FAN_LEVEL,
     CONF_OUTGOING_TEMPERATURE_ENTITY,
     CONF_OUTSIDE_TEMPERATURE_ENTITY,
     CONF_SENSOR_ENTITY_ID,
@@ -57,6 +59,8 @@ from .const import (
     DEFAULT_NIGHT_MAX_FAN_LEVEL,
     DEFAULT_NIGHT_START,
     DEFAULT_NIGHT_SUMMER_FAN_LEVEL,
+    DEFAULT_SUMMER_HEAT_DELTA,
+    DEFAULT_SUMMER_HEAT_FAN_LEVEL,
     DOMAIN,
 )
 
@@ -126,6 +130,8 @@ class SmartKwlFlowMixin:
                 vol.Required(CONF_NIGHT_END, default=defaults.get(CONF_NIGHT_END, DEFAULT_NIGHT_END)): selector.TimeSelector(),
                 vol.Required(CONF_NIGHT_MAX_FAN_LEVEL, default=defaults.get(CONF_NIGHT_MAX_FAN_LEVEL, DEFAULT_NIGHT_MAX_FAN_LEVEL)): _level_selector(defaults.get(CONF_NIGHT_MAX_FAN_LEVEL, DEFAULT_NIGHT_MAX_FAN_LEVEL)),
                 vol.Required(CONF_NIGHT_SUMMER_FAN_LEVEL, default=defaults.get(CONF_NIGHT_SUMMER_FAN_LEVEL, DEFAULT_NIGHT_SUMMER_FAN_LEVEL)): _level_selector(defaults.get(CONF_NIGHT_SUMMER_FAN_LEVEL, DEFAULT_NIGHT_SUMMER_FAN_LEVEL)),
+                vol.Required(CONF_SUMMER_HEAT_DELTA, default=defaults.get(CONF_SUMMER_HEAT_DELTA, DEFAULT_SUMMER_HEAT_DELTA)): vol.All(vol.Coerce(float), vol.Range(min=0, max=20)),
+                vol.Required(CONF_SUMMER_HEAT_FAN_LEVEL, default=defaults.get(CONF_SUMMER_HEAT_FAN_LEVEL, DEFAULT_SUMMER_HEAT_FAN_LEVEL)): _level_selector(defaults.get(CONF_SUMMER_HEAT_FAN_LEVEL, DEFAULT_SUMMER_HEAT_FAN_LEVEL)),
                 vol.Optional(CONF_SUMMER_MODE_SENSOR, default=defaults.get(CONF_SUMMER_MODE_SENSOR)): _binary_selector(),
                 vol.Required(CONF_CHECK_INTERVAL, default=defaults.get(CONF_CHECK_INTERVAL, DEFAULT_CHECK_INTERVAL)): vol.All(vol.Coerce(int), vol.Range(min=10, max=3600)),
                 vol.Required(
@@ -185,6 +191,12 @@ class SmartKwlFlowMixin:
                 return "night_summer_range"
             if night_max <= night_summer:
                 return "night_relation"
+
+        summer_heat_level = int(user_input[CONF_SUMMER_HEAT_FAN_LEVEL])
+        if not _int_in_range(summer_heat_level, min_level, max_level):
+            return "summer_heat_range"
+        if summer_heat_level > default_level:
+            return "summer_heat_relation"
 
         return None
 
@@ -309,6 +321,7 @@ class SmartKwlConfigFlow(SmartKwlFlowMixin, config_entries.ConfigFlow, domain=DO
                 "outgoing_expl": "Outgoing: supply air leaving the unit to your rooms (after heat exchanger).",
                 "outside_expl": "Outside: optional ambient outdoor reference sensor.",
                 "exhaust_expl": "Exhaust: extract air from rooms entering the unit (before heat exchanger).",
+                "summer_heat_expl": "Summer heat: if outside air is hotter than incoming air by the configured delta, the controller lowers the default base speed.",
             },
         )
 
@@ -357,6 +370,7 @@ class SmartKwlOptionsFlow(SmartKwlFlowMixin, config_entries.OptionsFlow):
                 "outgoing_expl": "Outgoing: supply air leaving the unit to your rooms (after heat exchanger).",
                 "outside_expl": "Outside: optional ambient outdoor reference sensor.",
                 "exhaust_expl": "Exhaust: extract air from rooms entering the unit (before heat exchanger).",
+                "summer_heat_expl": "Summer heat: if outside air is hotter than incoming air by the configured delta, the controller lowers the default base speed.",
             },
         )
 
